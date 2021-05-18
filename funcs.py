@@ -4,6 +4,16 @@ import matplotlib.pyplot as plt
 import sys
 
 def fftDeriv(func, domain, order = 1):
+    """Computes the nth derivative using the FFT.
+
+    Args:
+        func (1D array): the values of the function to be differentiated
+        domain (1D array): the domain over which the function is defined
+        order (int, optional): derivative order. Defaults to 1.
+
+    Returns:
+        1D array: values of nth derivative of function at over domain
+    """
 
     # get number of domain points and spacing
     N = len(domain)
