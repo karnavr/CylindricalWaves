@@ -5,13 +5,17 @@ import sys
 
 def fftDeriv(func, domain, method, order = 1):
 
+    # get number of domain points and spacing
     N = len(domain)
     dx = domain[-1] - domain[-2]
 
+    # compute wavenumbers (spatial frequency)
     k = np.fft.fftfreq(N, dx) * 2 * np.pi
 
+    # compute fourier transform
     fhat = np.fft.fft(func)
 
+    # multiply in fourier space for derivative and return to original space
     derivative = np.fft.ifft(k*1j*fhat).real
 
     return derivative
@@ -33,7 +37,6 @@ plt.plot(x, 2*np.cos(x) - 2*np.sin(x), label='Exact value', color='#00264D')
 plt.plot(x, derivative, '--', label='Derivative by FFT', color='red')
 plt.legend()
 plt.show()
-
 
 # Test Two
 
