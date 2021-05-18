@@ -3,7 +3,7 @@ import scipy as sp
 import matplotlib.pyplot as plt
 import sys
 
-def fftDeriv(func, domain, method, order = 1):
+def fftDeriv(func, domain, order = 1):
 
     # get number of domain points and spacing
     N = len(domain)
@@ -16,7 +16,7 @@ def fftDeriv(func, domain, method, order = 1):
     fhat = np.fft.fft(func)
 
     # multiply in fourier space for derivative and return to original space
-    derivative = np.fft.ifft(k*1j*fhat).real
+    derivative = np.fft.ifft( ((k*1j)**order) * fhat).real
 
     return derivative
 
@@ -38,6 +38,8 @@ plt.plot(x, derivative, '--', label='Derivative by FFT', color='red')
 plt.legend()
 plt.show()
 
+# sys.exit()
+
 # Test Two
 
 N2 = 1000
@@ -47,7 +49,7 @@ dx = L/N2
 x2 = np.arange(-L/2,L/2, dx, dtype="complex_")
 f2 = np.cos(x2) * np.exp(-np.power(x2,2)/25)
 
-analytical_derivative2 = -(np.sin(x2) * np.exp(-np.power(x2,2)/25 + (2/25)*x2*f2))
+analytical_derivative2 = - ((f4/np.cos(x4))*(25*np.sin(x4)+2*x4*np.cos(x4)))/25
 derivative2 = fftDeriv(f2, x2, 3)
 
 plt.plot(x2, analytical_derivative2, label='Exact value', color='#00264D')
@@ -68,5 +70,27 @@ analytical_derivative1 = 2*np.cos(2*x)-5*np.sin(5*x)
 
 plt.plot(x, analytical_derivative1, label='Exact value', color='#00264D')
 plt.plot(x, derivative1, '--', label='Derivative by FFT', color='red')
+plt.legend()
+plt.show()
+
+
+# Test Four
+
+N = 1000
+L = 30
+dx = L/N
+
+x = np.arange(-L/2,L/2, dx, dtype="complex_")
+f = np.cos(x) * np.exp(-np.power(x,2)/25)
+
+# analytical derivatives
+first_derivative = - ((f/np.cos(x))*(25*np.sin(x)+2*x*np.cos(x)))/25
+second_derivative = ((f/np.cos(x))*(100*x*np.sin(x)+(4*(x**2) - 675)*np.cos(x)))/625
+
+# fft derivative
+derivative = fftDeriv(f, x, 2)
+
+plt.plot(x, second_derivative, label='Exact value', color='#00264D')
+plt.plot(x, derivative, '--', label='Derivative by FFT', color='red')
 plt.legend()
 plt.show()
