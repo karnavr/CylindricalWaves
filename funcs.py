@@ -5,29 +5,14 @@ import sys
 
 def fftDeriv(func, domain, method, order = 1):
 
-    if method == 1:
-        N = len(domain)
-        dx = domain[-1] - domain[-2]
+    N = len(domain)
+    dx = domain[-1] - domain[-2]
 
-        k = np.fft.fftfreq(N, dx) * 2 * np.pi
+    k = np.fft.fftfreq(N, dx) * 2 * np.pi
 
-        fhat = np.fft.fft(func)
+    fhat = np.fft.fft(func)
 
-        derivative = np.fft.ifft(k*1j*fhat).real
-
-    elif method == 2:
-        fhat = np.fft.fft(func)
-
-        kappa = (2*np.pi/np.abs(x[-1]-x[0]))*np.arange(-len(domain)/2,len(domain)/2)
-        kappa = np.fft.fftshift(kappa) 
-
-        dfhat = kappa*fhat*(1j)
-
-        #Inverse Fourier Transform
-        derivative = np.real(np.fft.ifft(dfhat))
-
-    else:
-        raise RuntimeError("Use a valid method number!")
+    derivative = np.fft.ifft(k*1j*fhat).real
 
     return derivative
 
