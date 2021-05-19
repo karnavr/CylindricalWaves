@@ -32,6 +32,21 @@ x = solution_values[0,:]
 y = solution_values[1,:]
 z = solution_values[2,:]
 
+
+# plotting individual solutions
+variables = ['x', 'y', 'z']
+solutions = (x, y, z)
+
+for i in range(0, 3):
+
+    fig_i = plt.figure()
+
+    plt.plot(t, solutions[i], color='#00264D')
+    plt.xlabel('t', labelpad=10)
+    plt.ylabel(variables[i], labelpad=10)
+    plt.show()
+
+
 sys.exit()
 
 # Solving for steady states of the Lorenz model/system using Newton's method
