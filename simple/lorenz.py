@@ -2,6 +2,7 @@ import numpy as np
 import scipy.optimize as so
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import sys
 
 # solving phase space trajectory for the lorenz model 
@@ -21,9 +22,10 @@ def lorenztraj(t, state):
     return [dx, dy, dz]
 
 initial_condition = [1., 1., 20.]   # initial condition of x, y and z
+t_eval = np.linspace(0,14,1000)
 
 # solve ODE problem
-solution = spint.solve_ivp(lorenztraj, [0,14], initial_condition)
+solution = spint.solve_ivp(lorenztraj, [0,14], initial_condition, t_eval=t_eval)
 
 # un-pack wanted results
 t = solution.t
@@ -32,6 +34,8 @@ x = solution_values[0,:]
 y = solution_values[1,:]
 z = solution_values[2,:]
 
+print(f"Number of solution points computed: {len(t)}")
+
 
 # plotting individual solutions
 variables = ['x', 'y', 'z']
@@ -39,13 +43,25 @@ solutions = (x, y, z)
 
 for i in range(0, 3):
 
-    fig_i = plt.figure()
+    fig = plt.figure()
 
     plt.plot(t, solutions[i], color='#00264D')
     plt.xlabel('t', labelpad=10)
     plt.ylabel(variables[i], labelpad=10)
     plt.show()
 
+
+# plotting phase space plot 
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+
+ax.plot(x, y, z,'-')
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_zlabel('z')
+
+plt.show()
 
 sys.exit()
 
