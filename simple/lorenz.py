@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import sys
 
-# solving phase space trajectory for the lorenz model 
+## solving phase space trajectory for the lorenz model 
 
 def lorenztraj(t, state):
 
@@ -34,7 +34,7 @@ x = solution_values[0,:]
 y = solution_values[1,:]
 z = solution_values[2,:]
 
-print(f"Number of solution points computed: {len(t)}")
+print(f"Number of solution points computed: {len(t)} \n")
 
 
 # plotting individual solutions
@@ -51,21 +51,7 @@ for i in range(0, 3):
     plt.show()
 
 
-# plotting phase space plot 
-
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-
-ax.plot(x, y, z,'-')
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.set_zlabel('z')
-
-plt.show()
-
-sys.exit()
-
-# Solving for steady states of the Lorenz model/system using Newton's method
+## Solving for steady states of the Lorenz model/system using Newton's method
 
 def lorenz(u, param):
     """Defines the Lorenz model of ODEs.
@@ -100,5 +86,30 @@ initial_guess = np.array([50., 50., 50.])
 roots, info_dict, _, _ = so.fsolve(lorenz, initial_guess, args=[10., 28., 8./3.], full_output=True)
 
 print(f"Steady states of the lorenz model: {roots}")
-
 print(f"Number of function calls: {info_dict['nfev']}")
+
+
+# plot phase space trajectory with steady states of the Lorenz model
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+
+ax.plot(x, y, z,'-')
+ax.scatter(roots[0],roots[1],roots[2], marker="*", c="red")
+
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_zlabel('z')
+
+# make the panes transparent
+ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+
+# make the grid lines transparent
+ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+
+plt.show()
+
