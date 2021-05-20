@@ -34,7 +34,7 @@ x = solution_values[0,:]
 y = solution_values[1,:]
 z = solution_values[2,:]
 
-print(f"Number of solution points computed: {len(t)} \n")
+# print(f"Number of solution points computed: {len(t)} \n")
 
 
 # plotting individual solutions
@@ -53,6 +53,7 @@ for i in range(0, 3):
 
 ## Solving for steady states of the Lorenz model/system using Newton's method
 
+# need to define ODE system func differently for input into fsolve 
 def lorenz(u, param):
     """Defines the Lorenz model of ODEs.
 
@@ -82,11 +83,22 @@ def lorenz(u, param):
     return [dx, dy, dz]
 
 
-initial_guess = np.array([50., 50., 50.])
-roots, info_dict, _, _ = so.fsolve(lorenz, initial_guess, args=[10., 28., 8./3.], full_output=True)
+initial_guess_1 = np.array([50., 50., 50.])
+initial_guess_2 = np.array([2., 2., 2.])
+initial_guess_3 = np.array([-6*np.sqrt(2), -6*np.sqrt(2), 27.])
 
-print(f"Steady states of the lorenz model: {roots}")
-print(f"Number of function calls: {info_dict['nfev']}")
+guesses = [initial_guess_1, initial_guess_2, initial_guess_3]
+
+roots = np.empty((3,3))
+
+for i in range(3):
+
+    roots[i,:], info_dict, _, _ = so.fsolve(lorenz, guesses[i], args=[10., 28., 8./3.], full_output=True)
+
+    print(f"Initial guess: {guesses[i]}")
+    print(f"Steady states of the lorenz model: {roots[i,:]}")
+    print(f"Number of function calls: {info_dict['nfev']} \n")
+
 
 
 # plot phase space trajectory with steady states of the Lorenz model
@@ -94,8 +106,10 @@ print(f"Number of function calls: {info_dict['nfev']}")
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 
-ax.plot(x, y, z,'-')
-ax.scatter(roots[0],roots[1],roots[2], marker="*", c="red")
+ax.plot(x, y, z,'-', color='#223843')    # draw main trajectory
+
+for i in range(3):  # draw steady state points
+    ax.scatter(roots[i,0],roots[i,1],roots[i,2], marker="*", c="red", s=25)
 
 ax.set_xlabel('x')
 ax.set_ylabel('y')
@@ -112,4 +126,5 @@ ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
 ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
 
 plt.show()
+
 
