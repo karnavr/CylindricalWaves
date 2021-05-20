@@ -50,7 +50,22 @@ params = [g, m, k1, k2, L1, L2, D]
 
 equil_positions = so.fsolve(spring, initial_guess, args=params)
 
-print(f"Equilibirum positions: {equil_positions}")
+print(f"Equilibirum positions: x = {np.round(equil_positions[0], 5)}, y = {np.round(equil_positions[1], 5)}")
 
 
 ## Observing the change in position with variable k2 constand using numerical continuation
+
+# now k2 is the parameter we vary (all other parameters are kept the same as before)
+k2 = np.linspace(0, 20, 1000)
+
+equilibirum_positions = np.empty((len(k2),2)) # initialize array for equilibirum_positions
+
+initial_guess = [0.,0.1]
+
+for i in range(len(k2)):
+    equilibirum_positions[i,:] = so.fsolve(spring, initial_guess, args=[g, m, k1, k2[i], L1, L2, D])
+
+    initial_guess = equilibirum_positions[i,:]
+
+print(f"Continution computation complete.")
+
