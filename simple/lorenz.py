@@ -22,10 +22,10 @@ def lorenztraj(t, state):
     return [dx, dy, dz]
 
 initial_condition = [1., 1., 20.]   # initial condition of x, y and z
-t_eval = np.linspace(0,14,1000)
+t_eval = np.linspace(0,19,1000)
 
 # solve ODE problem
-solution = spint.solve_ivp(lorenztraj, [0,14], initial_condition, t_eval=t_eval)
+solution = spint.solve_ivp(lorenztraj, [0,19], initial_condition, t_eval=t_eval)
 
 # un-pack wanted results
 t = solution.t
