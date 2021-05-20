@@ -14,7 +14,7 @@ L1 = L2 = 0.1
 D = 0.1
 
 def spring(u, param):
-    """computes force (negative gradient) of the potential energy of the 2D mass-spring system.
+    """computes force vector (negative gradient) of the potential energy of the 2D mass-spring system.
     """
     # define x and y 
     x = u[0]
@@ -50,7 +50,7 @@ params = [g, m, k1, k2, L1, L2, D]
 
 equil_positions = so.fsolve(spring, initial_guess, args=params)
 
-print(f"Equilibirum positions: x = {np.round(equil_positions[0], 5)}, y = {np.round(equil_positions[1], 5)}")
+print(f"Equilibirum positions: x = {np.round(equil_positions[0], 5)}, y = {np.round(equil_positions[1], 5)} (set parameters)")
 
 
 ## Observing the change in position with variable k2 constand using numerical continuation
@@ -65,7 +65,24 @@ initial_guess = [0.,0.1]
 for i in range(len(k2)):
     equilibirum_positions[i,:] = so.fsolve(spring, initial_guess, args=[g, m, k1, k2[i], L1, L2, D])
 
-    initial_guess = equilibirum_positions[i,:]
+    initial_guess = equilibirum_positions[i,:] # update initial guess to be the previous equilibirum position
 
 print(f"Continution computation complete.")
+
+# extract equilibirum positions
+x_equil = equilibirum_positions[:,0]
+y_equil = equilibirum_positions[:,1]
+
+
+# Plotting the equilibrium position as k2 increases
+ 
+plt.plot(k2, x_equil, label='x', color='#086788')
+plt.plot(k2, y_equil, label='y', color='#EE5622')
+
+plt.xlabel(r'$k_2$', labelpad=10)
+plt.ylabel('equilibirum position (x or y)')
+
+plt.legend()
+
+plt.show()
 
