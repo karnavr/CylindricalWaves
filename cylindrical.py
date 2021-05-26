@@ -5,6 +5,8 @@ import scipy.optimize as so
 import matplotlib.pyplot as plt
 import sys
 
+from funcs import *
+
 # define domain constants
 L = np.pi
 N = 1000
@@ -29,7 +31,11 @@ bess_sec = sp.yn(1, z)
 
 def mainIntegrand(S, z, N, L, b, gamma, rho, V, epsilon):
 
-    # define components in integrand
+    # define S derivatives (spectral)
+    S_z = fftDeriv(S, z, order=1)
+    S_zz = fftDeriv(S, z, order=2)
+
+    # define components in integrand (eqn 2.19)
     kappa = - (S_zz/np.power(1 + S_z**2, 3/2)) + (1/(S*np.sqrt(1 + S_z**2)))
     F = ((gamma*kappa)/rho) - V - epsilon
 
@@ -45,7 +51,7 @@ def mainIntegrand(S, z, N, L, b, gamma, rho, V, epsilon):
 
     integrand = np.empty(N) # initialize array of N integrand equations 
 
-    # get k values (101 values but we discrad the eq'n with k=0 in the for loop) 
+    # get k values (101 values but we discard the eq'n with k=0 in the for loop) 
     k_values = np.arange(-N/2, N/2 + 1, 1)*(np.pi/L)
     i = 0
 
