@@ -5,15 +5,16 @@ import scipy.optimize as so
 import matplotlib.pyplot as plt
 import sys
 
-from funcs import *
+import funcs
 
 # define domain constants
 L = np.pi
-N = 1000
+N = 50
 dz = 2*L/(2*N + 1)
 
 # define domain
-z = np.arange(-L, L, dz)
+# z = np.arange(-L, L, dz) # 2N + 1 domain points
+z = np.linspace(-L, L, N) # N points (used for now because I'm not zero padding)
 print(len(z))
 
 # define magnetic constants 
@@ -32,8 +33,8 @@ bess_sec = sp.yn(1, z)
 def mainIntegrand(S, z, N, L, b, gamma, rho, V, epsilon):
 
     # define S derivatives (spectral)
-    S_z = fftDeriv(S, z, order=1)
-    S_zz = fftDeriv(S, z, order=2)
+    S_z = funcs.fftDeriv(S, z, order=1)
+    S_zz = funcs.fftDeriv(S, z, order=2)
 
     # define components in integrand (eqn 2.19)
     kappa = - (S_zz/np.power(1 + S_z**2, 3/2)) + (1/(S*np.sqrt(1 + S_z**2)))
@@ -49,7 +50,7 @@ def mainIntegrand(S, z, N, L, b, gamma, rho, V, epsilon):
         return sp.yn(order, domain)
 
 
-    integrand = np.empty(N,len(z)) # initialize array of N integrand equations 
+    integrand = np.empty((N,len(z))) # initialize array of N integrand equations 
 
     # get k values (101 values but we discard the eq'n with k=0 in the for loop) 
     k_values = np.arange(-N/2, N/2 + 1, 1)*(np.pi/L)
@@ -61,6 +62,7 @@ def mainIntegrand(S, z, N, L, b, gamma, rho, V, epsilon):
             continue # we don't want to include the equation with k = 0 (trivial solution)
 
         # individual terms
+        c = 1
         one = k*S*np.sqrt((1 + S_z**2)*(c**2 - 2*F))
         two = K(k*b)*I(k*S) - I(k*b)*K(k*S)
         three = np.cos(k*z)
@@ -89,8 +91,32 @@ def mainIntegral(S, params):
 
     # define all N integral equations (with trapezium rule)
     for i in integrands:
-        equations[n] = np.trapz(integrands[i,:], z)
+        equations[n] = np.trapz(integrands[n,:], z)
         n += 1
 
     return equations
 
+
+# set parameter values
+gamma = 1
+rho = 1
+V = 1
+params = [z, N, L, b, gamma, rho, V, epsilon]
+
+# set initial guess (simple cosine wave in real space for now)
+initial_guess = np.cos(z)
+
+
+solution = so.fsolve(mainIntegral, initial_guess, args = params)
+
+print(f"Solution computed.")
+print(f"Solution length: {solution.size}")
+
+# plotting 
+
+plt.plot(z, solution, color='#00264D')
+
+plt.xlabel("z", labelpad=10)
+plt.ylabel("S", labelpad=10)
+
+plt.show()
