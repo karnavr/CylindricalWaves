@@ -49,7 +49,7 @@ def mainIntegrand(S, z, N, L, b, gamma, rho, V, epsilon):
         return sp.yn(order, domain)
 
 
-    integrand = np.empty(N) # initialize array of N integrand equations 
+    integrand = np.empty(N,len(z)) # initialize array of N integrand equations 
 
     # get k values (101 values but we discard the eq'n with k=0 in the for loop) 
     k_values = np.arange(-N/2, N/2 + 1, 1)*(np.pi/L)
@@ -65,8 +65,8 @@ def mainIntegrand(S, z, N, L, b, gamma, rho, V, epsilon):
         two = K(k*b)*I(k*S) - I(k*b)*K(k*S)
         three = np.cos(k*z)
 
-        # add eq'n to integrad array  
-        integrand[i] = one*two*three
+        # add eq'n to integrand array (each row is one eq'n) 
+        integrand[i,:] = one*two*three
         i += 1
 
     return integrand
@@ -89,7 +89,7 @@ def mainIntegral(S, params):
 
     # define all N integral equations (with trapezium rule)
     for i in integrands:
-        equations[n] = np.trapz(integrands[i], z)
+        equations[n] = np.trapz(integrands[i,:], z)
         n += 1
 
     return equations
