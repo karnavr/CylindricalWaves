@@ -71,13 +71,26 @@ def mainIntegrand(S, z, N, L, b, gamma, rho, V, epsilon):
 
     return integrand
 
-def mainIntegral():
 
-    # define all N integral equations
-    np.trapz()
+def mainIntegral(S, params):
 
-    # append all equations to an array  
+    # define parameters 
+    parameters = [z, N, L, b, gamma, rho, V, epsilon]
+    
+    for i in range(0,7):
+        parameters[i] = params[i]
 
+    # get N integrand equations
+    integrands = mainIntegrand(S, z, N, L, b, gamma, rho, V, epsilon)
+
+    equations = np.empty(N) # initialize array of N integral equations
+
+    n = 0 
+
+    # define all N integral equations (with trapezium rule)
+    for i in integrands:
+        equations[n] = np.trapz(integrands[i], z)
+        n += 1
 
     return equations
 
