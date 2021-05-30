@@ -78,22 +78,26 @@ def mainIntegrand(S, z, N, L, b, B, epsilon):
 def mainIntegral(S, params):
 
     # # define parameters 
-    parameters = [z, N, L, b, B, epsilon]
+    # parameters = [z, N, L, b, B, epsilon]
     
-    for i in range(0,5):
-        parameters[i] = params[i]
+    # for i in range(0,5):
+    #     parameters[i] = params[i]
+
+    z = params[0]
+    N = params[1]
+    L = params[2]
+    b = params[3]
+    B = params[4]
+    epsilon = params[5]
 
     # get N integrand equations
     integrands = mainIntegrand(S, z, N, L, b, B, epsilon)
 
     equations = np.empty(N) # initialize array of N integral equations
 
-    n = 0 
-
     # define all N integral equations (with trapezium rule)
-    for i in integrands:
+    for n in range(0, N):
         equations[n] = np.trapz(integrands[n,:], z)
-        n += 1
 
     return equations
 
@@ -102,7 +106,7 @@ def mainIntegral(S, params):
 params = [z, N, L, b, B, epsilon]
 
 # set initial guess (simple cosine wave in real space for now)
-initial_guess = -np.cos(z)
+initial_guess = np.cos(z)
 
 
 solution, infodict, ier, msg = so.fsolve(mainIntegral, initial_guess, args = params, full_output=True)
