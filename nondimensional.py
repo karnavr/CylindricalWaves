@@ -9,7 +9,7 @@ import funcs
 
 # define domain constants
 L = np.pi
-N = 50
+N = 30
 dz = 2*L/(2*N + 1)
 
 # define domain
@@ -60,8 +60,9 @@ def mainIntegrand(S, z, N, L, b, B, epsilon):
             continue # we don't want to include the equation with k = 0 (trivial solution)
 
         # individual terms
-        c = 1.07
-        one = k*S*np.sqrt((Szsq)*((c**2)/2 - 1/(S*np.sqrt(Szsq)) + S_zz/np.power(Szsq, 3/2) + B/(2*(S**2)) + epsilon))
+        c = 1.06
+        one_p = (Szsq)*((c**2)/2 - 1/(S*np.sqrt(Szsq)) + S_zz/np.power(Szsq, 3/2) + B/(2*(S**2)) + epsilon)
+        one = k*S*np.sqrt(one_p)
         two = K(k*b)*I(k*S) - I(k*b)*K(k*S)
         three = np.cos(k*z)
 
@@ -104,10 +105,10 @@ def mainIntegral(S, params):
 
 # set parameter values
 params = [z, N, L, b, B, epsilon]
+# include a2 in params (eventually)
 
-# set initial guess (simple cosine wave in real space for now)
-initial_guess = np.cos(z)
-
+# set initial guess (with a0 = 1, very small a1 and non-zero a2)
+initial_guess = 1 + (1e-3)*np.cos(z) + 0.12*np.cos(2*z)
 
 solution, infodict, ier, msg = so.fsolve(mainIntegral, initial_guess, args = params, full_output=True)
 
@@ -122,6 +123,7 @@ print(msg)
 # plotting 
 
 plt.plot(z, solution, color='#00264D')
+plt.plot(z, initial_guess, '--', color='red')
 
 plt.xlabel("z", labelpad=5)
 plt.ylabel("S", labelpad=5)
