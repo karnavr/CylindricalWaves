@@ -38,12 +38,12 @@ def mainIntegrand(S, z, N, L, b, B, epsilon):
 
     # bessel functions 
     def I(domain, order=1):
-        # bessel of first kind
-        return sp.jv(order, domain)
+        # modified bessel of first kind
+        return sp.iv(order, domain)
     
     def K(domain, order=1):
-        # bessel of second kind
-        return sp.yn(order, domain)
+        # modified bessel of second kind
+        return sp.kn(order, domain)
 
 
     integrand = np.empty((N,len(z))) # initialize array of N integrand equations 
