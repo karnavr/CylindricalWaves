@@ -30,7 +30,7 @@ bess_first = sp.jv(1, z)
 bess_sec = sp.yn(1, z)
 
 
-def mainIntegrand(S, z, N, L, b, B, epsilon):
+def mainIntegrand(S, c, z, N, L, b, B, epsilon):
 
     # define S derivatives (spectral)
     S_z = funcs.fftDeriv(S, z, order=1)
@@ -50,7 +50,7 @@ def mainIntegrand(S, z, N, L, b, B, epsilon):
 
     Szsq = 1 + S_z**2 # commonly used value in eqs
 
-    # get k values (101 values but we discard the eq'n with k=0 in the for loop) 
+    # get k values (N + 1 values but we discard the eq'n with k=0 in the for loop) 
     k_values = np.arange(-N/2, N/2 + 1, 1)*(np.pi/L)
     i = 0
 
@@ -60,7 +60,6 @@ def mainIntegrand(S, z, N, L, b, B, epsilon):
             continue # we don't want to include the equation with k = 0 (trivial solution)
 
         # individual terms
-        c = 1.06
         one_p = (Szsq)*((c**2)/2 - 1/(S*np.sqrt(Szsq)) + S_zz/np.power(Szsq, 3/2) + B/(2*(S**2)) + epsilon)
         one = k*S*np.sqrt(one_p)
         two = K(k*b)*I(k*S) - I(k*b)*K(k*S)
@@ -78,12 +77,11 @@ def mainIntegrand(S, z, N, L, b, B, epsilon):
 
 def mainIntegral(S, params):
 
-    # # define parameters 
-    # parameters = [z, N, L, b, B, epsilon]
-    
-    # for i in range(0,5):
-    #     parameters[i] = params[i]
+    # get initial guess array and c value 
+    c = S[0]
+    S = S[1:]
 
+    # define parameters
     z = params[0]
     N = params[1]
     L = params[2]
@@ -92,7 +90,7 @@ def mainIntegral(S, params):
     epsilon = params[5]
 
     # get N integrand equations
-    integrands = mainIntegrand(S, z, N, L, b, B, epsilon)
+    integrands = mainIntegrand(S, c, z, N, L, b, B, epsilon)
 
     equations = np.empty(N) # initialize array of N integral equations
 
@@ -109,6 +107,9 @@ params = [z, N, L, b, B, epsilon]
 
 # set initial guess (with a0 = 1, very small a1 and non-zero a2)
 initial_guess = 1 + (1e-3)*np.cos(z) + 0.12*np.cos(2*z)
+c0 = [funcs.initial_c0(L,b,B)]
+
+initial_guess = np.concatenate((c0,initial_guess))
 
 solution, infodict, ier, msg = so.fsolve(mainIntegral, initial_guess, args = params, full_output=True)
 
