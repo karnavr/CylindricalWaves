@@ -66,6 +66,35 @@ def initial_c0(L, b, B):
     return c0
 
 
+def fourierToReal(coefficients, domain):
+    """Computes N points in real space (as cosine series) using N fourier coefficients. 
+
+    Args:
+        coefficients (1D array): array of fourier coefficients (a0, a1, ...)
+        domain (1D array): domain points in real space
+
+    Raises:
+        TypeError: if the number of coefficients is un-equal to number of domain points
+
+    Returns:
+        1D array: values in real space
+    """
+
+    # we want the same number of points output as the number of coeffs 
+    if len(coefficients) != len(domain):
+        raise TypeError("there are un-equal number of fourier coefficients and domain points!")
+
+    # initialize output signal to be zero
+    S = 0 
+
+    # iterate through all cosine modes corresponding to the coefficients
+    for a in range(0, len(coefficients)):
+        S += coefficients[a]*np.cos(a*domain)
+
+    # can later perhaps use the np.fft/rfft funcs to generalize this to waves that 
+    # are not even around z = 0 (and potentially increase speed)
+
+    return S
 
 # sys.exit()
 
