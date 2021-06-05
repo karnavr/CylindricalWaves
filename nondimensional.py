@@ -89,6 +89,9 @@ def mainIntegral(S, params):
     B = params[4]
     epsilon = params[5]
 
+    # convert coeffs to real space
+    S = funcs.fourierToReal(S, z)
+
     # get N integrand equations
     integrands = mainIntegrand(S, c, z, N, L, b, B, epsilon)
 
@@ -106,9 +109,12 @@ params = [z, N, L, b, B, epsilon]
 # include a2 in params (eventually)
 
 # set initial guess (with a0 = 1, very small a1 and non-zero a2)
-initial_guess = 1 + (1e-3)*np.cos(z) + 0.12*np.cos(2*z)
-c0 = [funcs.initial_c0(L,b,B)]
+# initial_guess = 1 + (1e-3)*np.cos(z) + 0.12*np.cos(2*z)
+initial_guess = np.zeros(N)
+initial_guess[0:3] = np.array([1, 1e-3, 0.12])
 
+# compute initial guess for wave speed value c0
+c0 = [funcs.initial_c0(L, b, B)]
 initial_guess = np.concatenate((c0,initial_guess))
 
 solution, infodict, ier, msg = so.fsolve(mainIntegral, initial_guess, args = params, full_output=True)
@@ -120,11 +126,10 @@ print(f"Number of function calls: {infodict['nfev']}")
 print(f"Integer Flag: {ier}")
 print(msg)
 
-
 # plotting 
 
-plt.plot(z, solution, color='#00264D')
-plt.plot(z, initial_guess, '--', color='red')
+plt.plot(z, funcs.fourierToReal(solution, z), color='#00264D')
+plt.plot(z, funcs.fourierToReal(initial_guess, z), '--', color='red')
 
 plt.xlabel("z", labelpad=5)
 plt.ylabel("S", labelpad=5)
