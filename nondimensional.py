@@ -88,6 +88,10 @@ def mainIntegral(S, params):
     b = params[3]
     B = params[4]
     epsilon = params[5]
+    a0 = [params[6]]
+
+    # add zeroth coeff to array (front)
+    S = np.concatenate((a0, S))
 
     # convert coeffs to real space
     S = funcs.fourierToReal(S, z)
@@ -105,17 +109,17 @@ def mainIntegral(S, params):
 
 
 # set parameter values
-params = [z, N, L, b, B, epsilon]
+params = [z, N, L, b, B, epsilon, 1.0]
 # include a2 in params (eventually)
 
 # set initial guess (with a0 = 1, very small a1 and non-zero a2)
 # initial_guess = 1 + (1e-3)*np.cos(z) + 0.12*np.cos(2*z)
-initial_guess = np.zeros(N)
-initial_guess[0:3] = np.array([1, 1e-3, 0.12])
+initial_guess = np.zeros(N-1) # of size N-1 for now but we are concatenating with c0 so will be N into the fsolve 
+initial_guess[0:2] = np.array([1e-3, 0.12]) # first and second fourier coeffs (zero will be addded via params)
 
 # compute initial guess for wave speed value c0
 c0 = [funcs.initial_c0(L, b, B)]
-initial_guess = np.concatenate((c0,initial_guess))
+initial_guess = np.concatenate((c0,initial_guess)) 
 
 solution, infodict, ier, msg = so.fsolve(mainIntegral, initial_guess, args = params, full_output=True)
 
