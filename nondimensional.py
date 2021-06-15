@@ -14,7 +14,7 @@ dz = 2*L/(2*N + 1)
 
 # define domain
 # z = np.arange(-L, L, dz) # 2N + 1 domain points
-z = np.linspace(-L, L, N) # N points (used for now because I'm not zero padding)
+z = np.linspace(-L, L, N+1) # N points (used for now because I'm not zero padding)
 print(len(z))
 
 # define magnetic constants 
@@ -51,8 +51,8 @@ def mainIntegrand(S, c, z, N, L, b, B, epsilon):
     Szsq = 1 + (S_z**2) # commonly used value in eqs
 
     # get k values (N + 1 values but we discard the eq'n with k=0 in the for loop) 
-    k_values = np.arange(-N/2, N/2 + 1, 1)*(np.pi/L)
-    # k_values = np.arange(0, N + 1, 1)*(np.pi/L) # (only positive k values)
+    # k_values = np.arange(-N/2, N/2 + 1, 1)*(np.pi/L)
+    k_values = np.arange(0, N + 1, 1)*(np.pi/L) # N + 1 values but we end up with N eq'ns (discard k=0 in loop)
     i = 0
 
     for k in k_values:
@@ -61,7 +61,7 @@ def mainIntegrand(S, c, z, N, L, b, B, epsilon):
             continue # we don't want to include the equation with k = 0 (trivial solution)
 
         # individual terms
-        one_p = (Szsq)*((c**2)/2 - 1/(S*np.sqrt(Szsq)) + S_zz/np.power(Szsq, 3/2) + B/(2*(S**2)) + epsilon)
+        one_p = (Szsq)*((c**2)/2 - 1/(S*np.sqrt(Szsq)) + S_zz/np.power(Szsq, 1.5) + B/(2*(S**2)) + epsilon)
         one = k*S*np.sqrt(one_p)
         two = K(k*b)*I(k*S) - I(k*b)*K(k*S)
         three = np.cos(k*z)
@@ -76,11 +76,11 @@ def mainIntegrand(S, c, z, N, L, b, B, epsilon):
     return integrand
 
 
-def mainIntegral(S, params):
+def mainIntegral(coeffs, params):
 
-    # get initial guess array and c value 
-    c = S[0]
-    S = S[1:]
+    # get N + 1 fourier coefficients and c value 
+    c = coeffs[0]
+    coeffs = coeffs[1:]
 
     # define parameters
     z = params[0]
@@ -89,43 +89,47 @@ def mainIntegral(S, params):
     b = params[3]
     B = params[4]
     epsilon = params[5]
-    a0 = [params[6]]
-
-    # add zeroth coeff to array (front)
-    S = np.concatenate((a0, S))
 
     # convert coeffs to real space
-    S = funcs.fourierToReal(S, z)
+    S = funcs.fourierToReal(coeffs, z)
 
     # get N integrand equations
     integrands = mainIntegrand(S, c, z, N, L, b, B, epsilon)
 
-    equations = np.empty(N) # initialize array of N integral equations
+    equations = np.empty(N+2) # initialize array of N + 2 equations
 
     # define all N integral equations (with trapezium rule)
     for n in range(0, N):
         equations[n] = np.trapz(integrands[n,:], z)
 
+    # define 2 more equations (needed for the N + 2 unknowns)
+    a0 = coeffs[0]
+    a2 = coeffs[2]
+    equations[N] = a0 - 1 # fix value of a0 to be 1
+    equations[N+1] = np.abs(a2 - 0.01) # ensure non-zero a2 value
+
     return equations
 
 
 # set parameter values
-params = [z, N, L, b, B, epsilon, 1.0]
+params = [z, N, L, b, B, epsilon]
 # include a2 in params (eventually)
 
 # set initial guess (with a0 = 1, very small a1 and non-zero a2)
 # initial_guess = 1 + (1e-3)*np.cos(z) + 0.12*np.cos(2*z)
-initial_guess = np.zeros(N-1) + 1e-8 # of size N-1 for now but we are concatenating with c0 so will be N into the fsolve 
-initial_guess[0:2] = np.array([1e-3, 0.12]) # first and second fourier coeffs (zero will be addded via params)
+initial_guess = np.zeros(N+1) # N + 1 coeffs, but we are concatenating with c0 so will be N + 2 unknowns into fsolve 
+initial_guess[0:3] = np.array([1.0, 1e-3, 0.12]) # a0, a1, and a2 coefficients 
 
 # compute initial guess for wave speed value c0
 # c0 = [funcs.initial_c0(L, b, B)] # computes to approx. 0.815 (for fig. 2 parameters)
 c0 = [1.079]
-initial_guess = np.concatenate((c0,initial_guess))
 
-solution, infodict, ier, msg = so.fsolve(mainIntegral, initial_guess, args = params, full_output=True, maxfev=1000, factor=100)
+# update initial guess vector
+initial_guess = np.concatenate((c0,initial_guess)) # size N + 2 now 
 
-print(f"Mean difference = {np.mean(solution-initial_guess)}") # look at mean difference between initial guess and solution array
+solution, infodict, ier, msg = so.fsolve(mainIntegral, initial_guess, args = params, full_output=True, maxfev=10**5, factor=100)
+
+print(f"Mean difference = {np.mean(solution-initial_guess)}")
 
 print(f"Solution computed.")
 print(f"Solution length: {solution.size}")
@@ -134,9 +138,13 @@ print(f"Number of function calls: {infodict['nfev']}")
 print(f"Integer Flag: {ier}")
 print(msg)
 
-# change solution and initial guess arrays to be exclusively fourier coeffs 
-solution[0] = 1.0
-initial_guess[0] = 1.0
+# print(infodict['fvec'])
+
+
+# change solution and initial guess arrays to be exclusively (N + 1) fourier coeffs (discard c value)
+solution = solution[1:]
+initial_guess = initial_guess[1:]
+
 
 # plotting 
 
@@ -147,8 +155,8 @@ plt.xlabel("z", labelpad=5)
 plt.ylabel("S", labelpad=5)
 plt.legend()
 
-# plt.show()
+plt.show()
 
-## TO-DO: 
+## TO-DO:
 # set new eq. like |a_2| - (small number) = 0 
 # (and add an extra fourier coeff such that the # of k values and the # of coeffs are the same)
