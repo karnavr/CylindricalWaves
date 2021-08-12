@@ -88,19 +88,18 @@ def equations(coeffs, z, s):
     # define one more eq. using eq. 5.7 (N + 1 eq's total now)
     equations[N] = F[0] - F[-1] - s
 
-    print(f"mean eq. value = {np.mean(equations)}")
+    # print(f"mean eq. value = {np.mean(equations)}")
 
 
     return equations
 
 
 # set steepness
-s = 0.6
+s = 0.18
 
 # create initial guess (N coeffs)
 initial_guess = np.zeros(N)
-initial_guess[0] = 0.17
-initial_guess[1] = 0.09
+initial_guess[0:2] = [0.17, 0.09]
 
 profile_initial = 0
 for i in range(0, N):
@@ -111,8 +110,6 @@ for i in range(0, N):
 Bstar_initial = [5.8]
 initial_guess = np.concatenate([Bstar_initial, initial_guess])
 
-# print(initial_guess[1:])
-
 # solve using fsolve
 solution, infodict, ier, msg = so.fsolve(equations, initial_guess, args=(z, s), full_output=True, maxfev=10000)
 
@@ -121,8 +118,11 @@ print(f"INTEGER FLAG: {ier}")
 print(f"MESSAGE: {msg}")
 
 print(f"calls = {infodict['nfev']}")
-print(f"average function eval at output = {np.average(infodict['fvec'])}\n \n")
-# # print(f"fvec = {infodict['fvec']}\n \n")
+print(f"average function eval at output = {np.average(infodict['fvec'])}")
+
+print("\n\n~RESULTS~")
+print(f"s = {s}")
+print(f"B* = {solution[0]}")
 
 
 # convert solution from fourier space to real space 
@@ -137,8 +137,61 @@ plt.plot(z, profile_initial, '--', color='red', label='initial guess')
 plt.plot(z, profile_solution, color='#00264D', label='solution')
 
 plt.legend()
-plt.show()
+# plt.show()
+
+bifurcation = True
+if bifurcation == True:
+
+    branch_points = 15      # number of points on bifrucation branch
+
+    # create initial guess for first branch point 
+    s = np.linspace(0.001, 0.5, branch_points)
+
+    initial_guess = np.zeros(N)         # create initial guess (N coeffs)
+    initial_guess[0:2] = [0.17, 0.09]
+
+    Bstar_initial = [6.97]              # add Bstar guess to initial guess (for s = 0.001)
+    initial_guess = np.concatenate([Bstar_initial, initial_guess])
+
+
+    # initialize arrays for solutions (later include wave profiles too)
+    Bstars = np.zeros(len(s))
+
+
+    # solve up branch for all steepness values
+    for i in range(0, len(s)):
+
+        # solve for current s value 
+        solution, infodict, ier, msg = so.fsolve(equations, initial_guess, args=(z, s[i]), full_output=True, maxfev=10000)
+
+        # print(f"B* = {solution[0]}")
+        print(f"{(i+1)}/{len(s)}")
+
+        # print when the integer flag is anything other than 1
+
+        # write solution to array (later include wave profiles too)
+        Bstars[i] = solution[0]
+
+        # update initial guess to be current solution 
+        initial_guess = solution
+
+    
+    # plot bifurcation branch 
+    fig = plt.figure()
+    plt.plot(s, Bstars, '.', color='#00264D')
+    plt.xlabel('s')
+    plt.ylabel(r'$B^*$')
+    plt.show()
+
+
+
+
 
 # todo:
 # * test finite derivative function for correct behaviour (seperate python file with print statements haha)
 # * check over derivative formulae for correctness
+
+# compute solutions up the bifurcation branch using numerical continuation
+# colour points in bifurcation depending on how many iterations it took to reach the solution or 
+#   maybe even what the avergae func eval is at those steepness values
+# plot the function eval at output for the values up the branch
