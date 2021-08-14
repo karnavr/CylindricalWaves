@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as so
 
+from funcs import *
 import sys
 
 # create domain mesh points
@@ -25,55 +26,14 @@ def equations(coeffs, z, s):
     for i in range(0, N):
         F += coeffs[i] * np.cos(i*2*np.pi*z)
 
-    # define finite difference derivative (derivative in real space)
-    def finDer(point, order, func, domain):
-        """Computes finite difference derivative at given point in domain.s 
-
-        Args:
-            point (int): index in domain at which to compute derivative
-            order (int): derivative order
-            func (1D array): function values over domain
-            domain (1D array): domain values corresponding to func
-
-        Returns:
-            float: derivative of func at point in domain
-        """
-
-        N = len(domain)
-        h = domain[4] - domain[3]   # set spacing 
-
-        if point == 0: # forward difference derivatives (for first point)
-            if order == 1:
-                derivative = (func[point + 1] - func[point])/h
-            elif order == 2:
-                derivative = (func[point+2] - 2*func[point+1] + func[point])/(h**2)
-            else:
-                raise ValueError('enter a valid derivative order')
-        elif point == (N - 1): # backward difference derivatives (for last point)
-            if order == 1:
-                derivative = (func[point] - func[point-1])/h
-            elif order == 2:
-                derivative = (func[point] - 2*func[point-1] + func[point-2])/(h**2)
-            else:
-                raise ValueError('enter a valid derivative order')
-        else:
-            if order == 1: # centered derivatives (for intermediate points)
-                derivative = (func[point+1] - func[point-1])/(2*h)
-            elif order ==2:
-                derivative = (func[point+1] + func[point-1] - 2*func[point])/(h**2)
-            else:
-                raise ValueError('enter a valid derivative order')
-
-        return derivative
-
     
     # define N equations using eq. 5.3 
     equations = np.zeros(N+1)
 
     for i in range(0, N):
         # define needed derivatives at current mesh point 
-        F_z = finDer(i, 1, F, z)
-        F_zz = finDer(i, 2, F, z) 
+        F_z = finDiff1D(i, 1, F, z)
+        F_zz = finDiff1D(i, 2, F, z) 
 
         # define K (eq. 2.6)
         Kone = F_zz/(np.power(1 + F_z**2, 3/2))
@@ -101,12 +61,13 @@ s = 0.18
 initial_guess = np.zeros(N)
 initial_guess[0:2] = [0.17, 0.09]
 
+# convert initial guess to real space (for later plotting)
 profile_initial = 0
 for i in range(0, N):
     profile_initial += initial_guess[i] * np.cos(i*2*np.pi*z)
 
 
-# add Bstar guess to initial guess
+# add B* guess to initial guess
 Bstar_initial = [5.8]
 initial_guess = np.concatenate([Bstar_initial, initial_guess])
 
@@ -138,6 +99,9 @@ plt.plot(z, profile_solution, color='#00264D', label='solution')
 
 plt.legend()
 # plt.show()
+
+
+# compute points up bifurcation branch
 
 bifurcation = True
 if bifurcation == True:
@@ -178,7 +142,7 @@ if bifurcation == True:
     
     # plot bifurcation branch 
     fig = plt.figure()
-    plt.plot(s, Bstars, '.', color='#00264D')
+    plt.plot(s, Bstars, color='#00264D')
     plt.xlabel('s')
     plt.ylabel(r'$B^*$')
     plt.show()

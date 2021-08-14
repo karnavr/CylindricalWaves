@@ -71,3 +71,44 @@ def sculptArray(option, array, newshape=None):
         raise ValueError('select a valid option for sculpting the array')
     
     return array
+
+# one dimensional finite difference derivatives (in real space)
+def finDiff1D(point, order, func, domain):
+    """Computes finite difference derivative at given point in domain.s 
+
+    Args:
+        point (int): index in domain at which to compute derivative
+        order (int): derivative order
+        func (1D array): function values over domain
+        domain (1D array): domain values corresponding to func
+
+    Returns:
+        float: derivative of func at point in domain
+    """
+
+    N = len(domain)
+    h = domain[4] - domain[3]   # set spacing 
+
+    if point == 0: # forward difference derivatives (for first point)
+        if order == 1:
+            derivative = (func[point + 1] - func[point])/h
+        elif order == 2:
+            derivative = (func[point+2] - 2*func[point+1] + func[point])/(h**2)
+        else:
+            raise ValueError('enter a valid derivative order')
+    elif point == (N - 1): # backward difference derivatives (for last point)
+        if order == 1:
+            derivative = (func[point] - func[point-1])/h
+        elif order == 2:
+            derivative = (func[point] - 2*func[point-1] + func[point-2])/(h**2)
+        else:
+            raise ValueError('enter a valid derivative order')
+    else:
+        if order == 1: # centered derivatives (for intermediate points)
+            derivative = (func[point+1] - func[point-1])/(2*h)
+        elif order ==2:
+            derivative = (func[point+1] + func[point-1] - 2*func[point])/(h**2)
+        else:
+            raise ValueError('enter a valid derivative order')
+
+    return derivative
