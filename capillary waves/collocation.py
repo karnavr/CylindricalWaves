@@ -99,15 +99,17 @@ plt.plot(z_full, profile_initial, '--', color='red', label='initial guess')
 plt.plot(z_full, profile_solution, color='#00264D', label='solution')
 
 plt.legend()
-plt.show()
+# plt.show()
 
 
 # compute points up bifurcation branch
+# note that computing points up the branch is quite sensitive to changes in the number of branch points and 
+# the amount that you nudge the B* guess by for each solution on the branch 
 
-bifurcation = False
+bifurcation = True
 if bifurcation == True:
 
-    branch_points = 15      # number of points on bifrucation branch
+    branch_points = 111      # number of points on bifrucation branch
 
     # create initial guess for first branch point 
     s = np.linspace(0.001, 0.5, branch_points)
@@ -116,15 +118,16 @@ if bifurcation == True:
     initial_guess[0:2] = [0.17, 0.09]
 
     Bstar_initial = [6.97]              # add Bstar guess to initial guess (for s = 0.001)
+    # Bstar_initial = [2*np.pi]
     initial_guess = np.concatenate([Bstar_initial, initial_guess])
 
 
     # initialize arrays for solutions (later include wave profiles too)
-    Bstars = np.zeros(len(s))
+    Bstars = np.zeros(branch_points)
 
 
     # solve up branch for all steepness values
-    for i in range(0, len(s)):
+    for i in range(0, branch_points):
 
         # solve for current s value 
         solution, infodict, ier, msg = so.fsolve(equations, initial_guess, args=(z, s[i]), full_output=True, maxfev=10000)
@@ -133,11 +136,14 @@ if bifurcation == True:
         print(f"{(i+1)}/{len(s)}")
 
         # print when the integer flag is anything other than 1
+        if ier != 1:
+            print(ier)
 
         # write solution to array (later include wave profiles too)
         Bstars[i] = solution[0]
 
-        # update initial guess to be current solution 
+        # update initial guess to be current solution
+        solution[0] += -0.0001
         initial_guess = solution
 
     
