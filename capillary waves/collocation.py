@@ -62,9 +62,7 @@ initial_guess = np.zeros(N)
 initial_guess[0:2] = [0.17, 0.09]
 
 # convert initial guess to real space (for later plotting)
-profile_initial = 0
-for i in range(0, N):
-    profile_initial += initial_guess[i] * np.cos(i*2*np.pi*z)
+profile_initial = fourierToReal(initial_guess, z)
 
 
 # add B* guess to initial guess
@@ -88,9 +86,7 @@ print(f"B* = {solution[0]}")
 
 # convert solution from fourier space to real space 
 solution_coeffs = solution[1:]
-profile_solution = 0 
-for i in range(0, N):
-    profile_solution += solution_coeffs[i] * np.cos(i*2*np.pi*z)
+profile_solution = fourierToReal(solution_coeffs, z)
 
 
 # plotting 
@@ -98,7 +94,7 @@ plt.plot(z, profile_initial, '--', color='red', label='initial guess')
 plt.plot(z, profile_solution, color='#00264D', label='solution')
 
 plt.legend()
-# plt.show()
+plt.show()
 
 
 # compute points up bifurcation branch
@@ -157,5 +153,5 @@ if bifurcation == True:
 
 # compute solutions up the bifurcation branch using numerical continuation
 # colour points in bifurcation depending on how many iterations it took to reach the solution or 
-#   maybe even what the avergae func eval is at those steepness values
+#   maybe even what the average func eval is at those steepness values
 # plot the function eval at output for the values up the branch

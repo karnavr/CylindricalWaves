@@ -112,3 +112,26 @@ def finDiff1D(point, order, func, domain):
             raise ValueError('enter a valid derivative order')
 
     return derivative
+
+# given coeffs, converts from fourier space to real space (eq. 5.5)
+def fourierToReal(coeffs, domain):
+    """Converts from fourier space to real space over given domain.
+
+    Args:
+        coeffs (1D array): array of fourier coefficients (a0, a1, ...)
+        domain (1D array): domain points in real space
+
+    Returns:
+        1D array: values in real space
+    """
+
+    N = len(coeffs)
+
+    # initialize to be zero 
+    real = 0 
+
+    # iterate through all cosine modes corresponding to the coefficients (eq. 5.5)
+    for i in range(N):
+        real += coeffs[i] * np.cos(i*2*np.pi*domain)
+
+    return real
