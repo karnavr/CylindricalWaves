@@ -88,10 +88,15 @@ print(f"B* = {solution[0]}")
 solution_coeffs = solution[1:]
 profile_solution = fourierToReal(solution_coeffs, z)
 
+# create other half of wave profiles (symmetric)
+z_full = np.concatenate([z, z + 0.5])
+profile_solution = np.concatenate([profile_solution, np.flip(profile_solution)])
+profile_initial = np.concatenate([profile_initial, np.flip(profile_initial)])
+
 
 # plotting 
-plt.plot(z, profile_initial, '--', color='red', label='initial guess')
-plt.plot(z, profile_solution, color='#00264D', label='solution')
+plt.plot(z_full, profile_initial, '--', color='red', label='initial guess')
+plt.plot(z_full, profile_solution, color='#00264D', label='solution')
 
 plt.legend()
 plt.show()
@@ -99,7 +104,7 @@ plt.show()
 
 # compute points up bifurcation branch
 
-bifurcation = True
+bifurcation = False
 if bifurcation == True:
 
     branch_points = 15      # number of points on bifrucation branch
@@ -151,7 +156,7 @@ if bifurcation == True:
 # * test finite derivative function for correct behaviour (seperate python file with print statements haha)
 # * check over derivative formulae for correctness
 
-# compute solutions up the bifurcation branch using numerical continuation
+# * compute solutions up the bifurcation branch using numerical continuation
 # colour points in bifurcation depending on how many iterations it took to reach the solution or 
 #   maybe even what the average func eval is at those steepness values
 # plot the function eval at output for the values up the branch
