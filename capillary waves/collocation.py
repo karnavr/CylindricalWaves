@@ -124,6 +124,8 @@ if bifurcation == True:
 
     # initialize arrays for solutions (later include wave profiles too)
     Bstars = np.zeros(branch_points)
+    profiles_coeffs = np.zeros((branch_points, N))  # coeffs of solution profiles
+    guess_coeffs = np.zeros((branch_points, N))     # coeffs of each guess on branch with 1:1 correspondance w above
 
 
     # solve up branch for all steepness values
@@ -139,11 +141,13 @@ if bifurcation == True:
         if ier != 1:
             print(ier)
 
-        # write solution to array (later include wave profiles too)
+        # write solutions to array
         Bstars[i] = solution[0]
+        guess_coeffs[i,:] = initial_guess[1:]  # capture guess leading to current solution 
+        profiles_coeffs[i,:] = solution[1:]    # capture coeffs of current solution
 
         # update initial guess to be current solution
-        solution[0] += -0.0001
+        solution[0] += -0.0001  # nudge B* guess for better behaviour
         initial_guess = solution
 
     
@@ -153,6 +157,21 @@ if bifurcation == True:
     plt.xlabel('s')
     plt.ylabel(r'$B^*$')
     plt.show()
+
+
+    ## get all solution/guess profiles ready for plotting
+
+    # convert from fourier to real space 
+    profiles = np.zeros_like(profiles_coeffs)
+    guesses = np.zeros_like(guess_coeffs)
+
+    for i in range(branch_points):
+        profiles[i,:] = fourierToReal(profiles_coeffs[i,:], z)
+        guesses[i,:] = fourierToReal(guess_coeffs[i,:], z)
+
+    # extend over whole domain
+    profiles = np.concatenate([profiles, np.flip(profiles, 1)], axis=1)
+    guesses = np.concatenate([guesses, np.flip(guesses, 1)], axis=1)
 
 
 
