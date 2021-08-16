@@ -179,8 +179,9 @@ if bifurcation == True:
     create_animation = True
     if create_animation == True:
 
-        print("CREATING ANIMATION")
+        print("\n\n~CREATING ANIMATION~")
 
+        # profiles animation
         fig = plt.figure()
         camera = Camera(fig)
 
@@ -189,12 +190,35 @@ if bifurcation == True:
             # plot one figure for each branch point and snap using Camera 
             plt.plot(z_full, guesses[i,:], '--', color='red', label='initial guess')
             plt.plot(z_full, profiles[i,:], color='#00264D', label='solution')
+            plt.xlabel('z', labelpad=5)
+            plt.ylabel('S', labelpad=5)
 
             camera.snap()
 
-        print('COMBINING FRAMES')
         animation = camera.animate()
         animation.save('profiles.gif')
+
+        # bifurcation branch animation
+        fig = plt.figure()
+        camera = Camera(fig)
+
+        for i in range(branch_points):
+
+            # plot one figure for each branch point and snap using Camera 
+            plt.plot(s[:i], Bstars[:i], '.', color='#00264D')    # plot first i branch points on fig
+            plt.xlabel('s', labelpad=5)
+            plt.ylabel(r'$B^*$', labelpad=5)
+
+            plt.xlim(min(s)-0.02, max(s)+0.02)
+            plt.ylim(min(Bstars)-0.2, max(Bstars)+0.2)
+
+            camera.snap()
+
+        animation = camera.animate()
+        animation.save('bifurcation.gif')
+
+
+
 
 plt.show()
 
