@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as so
+from celluloid import Camera
 
 from funcs import *
 import sys
@@ -99,7 +100,6 @@ plt.plot(z_full, profile_initial, '--', color='red', label='initial guess')
 plt.plot(z_full, profile_solution, color='#00264D', label='solution')
 
 plt.legend()
-# plt.show()
 
 
 # compute points up bifurcation branch
@@ -108,6 +108,8 @@ plt.legend()
 
 bifurcation = True
 if bifurcation == True:
+
+    print("\n\n~COMPUTING BIFURCATON BRANCH~")
 
     branch_points = 111      # number of points on bifrucation branch
 
@@ -156,7 +158,6 @@ if bifurcation == True:
     plt.plot(s, Bstars, color='#00264D')
     plt.xlabel('s')
     plt.ylabel(r'$B^*$')
-    plt.show()
 
 
     ## get all solution/guess profiles ready for plotting
@@ -173,6 +174,29 @@ if bifurcation == True:
     profiles = np.concatenate([profiles, np.flip(profiles, 1)], axis=1)
     guesses = np.concatenate([guesses, np.flip(guesses, 1)], axis=1)
 
+
+    ## create bifurcation solutions animation
+    create_animation = True
+    if create_animation == True:
+
+        print("CREATING ANIMATION")
+
+        fig = plt.figure()
+        camera = Camera(fig)
+
+        for i in range(branch_points):
+
+            # plot one figure for each branch point and snap using Camera 
+            plt.plot(z_full, guesses[i,:], '--', color='red', label='initial guess')
+            plt.plot(z_full, profiles[i,:], color='#00264D', label='solution')
+
+            camera.snap()
+
+        print('COMBINING FRAMES')
+        animation = camera.animate()
+        animation.save('profiles.gif')
+
+plt.show()
 
 
 
