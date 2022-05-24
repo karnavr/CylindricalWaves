@@ -7,6 +7,7 @@ using InteractiveUtils
 # ╔═╡ 8cbf8d32-3ff4-4fdb-bf14-446c5af4f090
 begin
 	using Plots
+	using LaTeXStrings
 	using NLsolve
 end
 
@@ -46,7 +47,7 @@ md"###### defining the system of equations
 define $N+1$ equations for the $N$ unknown fourier coefficients $u_N$ and the unknown $B^*$"
 
 # ╔═╡ 74c78bd5-ebde-43f2-a3d1-2c9ad06b8079
-function equations!(equation, coeffs)
+function equations!(equation, coeffs, s)
 
 	N = length(coeffs) - 1		# number of mesh points
 
@@ -87,7 +88,7 @@ function equations!(equation, coeffs)
 	end
 
 	# define one more equation using eq. 5.7 (N+1 total now)
-	equation[N+1] = F[1] - F[length(F)] - 0.18
+	equation[N+1] = F[1] - F[length(F)] - s
 	
 	return equation
 end
@@ -96,10 +97,10 @@ end
 md"define a *closure* around our general `equations` function to solve the system for a specific value of steepness $s$. we will later have to define this for each point on the bifurcation branch."
 
 # ╔═╡ 9abb54f2-bf02-4435-ac00-0aad6ecf6967
-# begin
-# 	s = 0.18
-# 	eqn!(equation, coeffs) = equations!(equation, coeffs, s)
-# end
+begin
+	s = 0.18
+	eqn!(equation, coeffs) = equations!(equation, coeffs, s)
+end
 
 # ╔═╡ f416c5c2-3946-4dcf-85ed-dde9ae61f89a
 md"create an initial guess:
@@ -117,7 +118,13 @@ end
 md"use `NLsolve` to solve our system"
 
 # ╔═╡ 8ca84f28-fbda-429c-9f77-a751bb303917
-sol = nlsolve(equations!, initial_guess)
+sol = nlsolve(eqn!, initial_guess)
+
+# ╔═╡ 8378bf06-287a-4c9a-bb74-3c7a54fcad12
+
+
+# ╔═╡ 16fcf6aa-9a0b-444a-86bf-80ab52f3530c
+md"##### Plot the wave profile for $s = 0.18$"
 
 # ╔═╡ 654c8155-7c86-459d-9b1d-e85d5ec7419b
 begin
@@ -134,13 +141,75 @@ begin
 	plot(domain, profile)
 end
 
+# ╔═╡ 128de4ca-4655-4cc6-aca1-ccb573c640e5
+
+
+# ╔═╡ acf0da0a-b2ac-42a8-8d13-0ef7561d4118
+md"### Solving for bifurcation branch
+
+We can now solve for multiple profiles by computing points on the birfurcation branch. We vary $s$ between $0 < s < 0.5$ and plot solutions for $B^*$, characterizing the branch.
+"
+
+# ╔═╡ af3bb7bd-2248-45d3-b876-e88a247a14cc
+begin
+	branchPoints = 20
+	s_vals = collect(range(0.001,0.5,branchPoints))
+
+	# initial guess for first bifurcation point
+	# guess = zeros(branchPoints, N+1)
+	# guess[1, 1:3] = [2*pi, 0.17, 0.09]
+
+	# initialize solutions arrays
+	solutions = zeros(branchPoints+1, N+1) # one extra solution for first guess
+	solutions[1, 1:3] = [2*pi, 0.17, 0.09]
+	Bstars = zeros(branchPoints)
+	fourierCoeffs = zeros(branchPoints, N)
+
+	# solve for each point on branch (vary steepness)
+	for i = 1:branchPoints
+
+		# set current s value (via a closure around equations!)
+		s = s_vals[i]
+		eqns!(equation, coeffs) = equations!(equation, coeffs, s)
+
+		# solve for current s value (gives [B*, fourierCoeffs])
+		solutions[i+1,:] = nlsolve(eqns!, solutions[i,:]).zero
+
+		# capture current solution
+		Bstars[i] = solutions[i+1,1]
+		fourierCoeffs[i, :] = solutions[i+1, 2:end]
+		
+		# update initial guess
+		# guess = solutions
+	end
+end
+
+# ╔═╡ 8f30b396-b0f4-4734-a9d6-dc04a373e2a7
+solutions
+
+# ╔═╡ 31669ce4-b070-445d-901c-51f52a0e3a10
+md"#### Plot bifurcation branch"
+
+# ╔═╡ 30dea1d9-085c-43e6-a8c5-1243d1e4981b
+begin
+	scatter(s_vals[2:end], Bstars[2:end], legend = false)
+	annotate!(0.10,4.3,("branch points = $(branchPoints)", 10))
+	xlabel!(L"s"); ylabel!(L"B^*")
+end
+
+# ╔═╡ 0d36f264-9cb7-4815-9d7c-f7ff35e85b8b
+
+
+# ╔═╡ aee07280-d4d5-4aff-b8df-7017965b9da6
+md"#### Other random tests and function definitions"
+
 # ╔═╡ a4b6ff19-0597-4075-bcec-3684f5dbe95b
 md"create object of type `OnceDifferentiable` to pass to `NLsolve`"
 
 # ╔═╡ e45703ad-63df-4609-be4b-cab05e490efe
 begin
 	initial_F = similar(initial_guess)
-	df = OnceDifferentiable(equations!, initial_guess, initial_F)
+	df = OnceDifferentiable(eqn!, initial_guess, initial_F)
 	nlsolve(df, initial_guess)
 end
 
@@ -183,6 +252,11 @@ function finDiff1D(i, order, y, domain)
 	end
 
 	return derivative
+end
+
+# ╔═╡ ce17061a-3dec-415b-9db9-2aaee391dd88
+function fourierToReal(coeffs, domain)
+	# will define this later because I do this often
 end
 
 # ╔═╡ ed8db320-6515-400e-857a-0ece8c7d5d90
@@ -233,11 +307,13 @@ end
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
 FiniteDifferences = "~0.12.24"
+LaTeXStrings = "~1.3.0"
 NLsolve = "~4.5.1"
 Plots = "~1.29.0"
 """
@@ -1242,11 +1318,22 @@ version = "0.9.1+5"
 # ╠═3eb28366-3b39-471f-8340-61b404b89b1d
 # ╟─51cae372-24bb-4b8f-8297-c5735eddc9da
 # ╠═8ca84f28-fbda-429c-9f77-a751bb303917
+# ╟─8378bf06-287a-4c9a-bb74-3c7a54fcad12
+# ╟─16fcf6aa-9a0b-444a-86bf-80ab52f3530c
 # ╠═654c8155-7c86-459d-9b1d-e85d5ec7419b
+# ╟─128de4ca-4655-4cc6-aca1-ccb573c640e5
+# ╟─acf0da0a-b2ac-42a8-8d13-0ef7561d4118
+# ╠═af3bb7bd-2248-45d3-b876-e88a247a14cc
+# ╠═8f30b396-b0f4-4734-a9d6-dc04a373e2a7
+# ╟─31669ce4-b070-445d-901c-51f52a0e3a10
+# ╠═30dea1d9-085c-43e6-a8c5-1243d1e4981b
+# ╟─0d36f264-9cb7-4815-9d7c-f7ff35e85b8b
+# ╟─aee07280-d4d5-4aff-b8df-7017965b9da6
 # ╟─a4b6ff19-0597-4075-bcec-3684f5dbe95b
-# ╠═e45703ad-63df-4609-be4b-cab05e490efe
+# ╟─e45703ad-63df-4609-be4b-cab05e490efe
 # ╟─44e7c5bd-4fbf-4a43-a226-2b0a94827618
 # ╟─5fd29c42-2f93-430d-8b59-f479a95943ec
+# ╠═ce17061a-3dec-415b-9db9-2aaee391dd88
 # ╟─ed8db320-6515-400e-857a-0ece8c7d5d90
 # ╟─e926fd00-498c-4691-a124-f7d6d642008b
 # ╠═47731d8f-8a84-4893-b836-aed861ea3231
