@@ -22,7 +22,7 @@ Capillary waves propagating at aconstant velocity along a cylindrical jet are ca
 
 Free surface condition:
 
-$$- \left( \frac{F_{zz}}{(1 + F_z^2)^{3/2}} - \frac{1}{(1 + F_z^2)^{1/2}} \frac{1}{F}\right) = B^* = \frac{B}{\alpha}$$
+$$- K = - \left( \frac{F_{zz}}{(1 + F_z^2)^{3/2}} - \frac{1}{(1 + F_z^2)^{1/2}} \frac{1}{F}\right) = B^* = \frac{B}{\alpha}$$
 
 define a truncated ($N$ terms) Fourier series:
 
@@ -125,21 +125,6 @@ sol = nlsolve(eqn!, initial_guess)
 
 # ╔═╡ 16fcf6aa-9a0b-444a-86bf-80ab52f3530c
 md"##### Plot the wave profile for $s = 0.18$"
-
-# ╔═╡ 654c8155-7c86-459d-9b1d-e85d5ec7419b
-begin
-	solution = sol.zero
-	myB = solution[1]
-	fouriercoeffs = solution[2:N+1]
-	domain = collect(range(0,0.5,N))
-
-	profile = 0 
-	for i = 0:(N-1)
-		profile = profile .+ fouriercoeffs[i+1] .* cos.(i*2*π .* domain) 
-	end
-	
-	plot(domain, profile)
-end
 
 # ╔═╡ 128de4ca-4655-4cc6-aca1-ccb573c640e5
 
@@ -256,7 +241,28 @@ end
 
 # ╔═╡ ce17061a-3dec-415b-9db9-2aaee391dd88
 function fourierToReal(coeffs, domain)
-	# will define this later because I do this often
+	
+	N = length(coeffs)	# number of fourier coeffs (a0, a1, ...)
+	
+	profile = 0 		# initialize profile
+	
+	for i = 0:(N-1)
+		profile = profile .+ coeffs[i+1] .* cos.(i*2*π .* domain) 
+	end
+
+	return profile
+end
+
+# ╔═╡ 654c8155-7c86-459d-9b1d-e85d5ec7419b
+begin
+	solution = sol.zero
+	myB = solution[1]
+	fouriercoeffs = solution[2:N+1]
+	domain = collect(range(0,0.5,N))
+
+	profile = fourierToReal(fouriercoeffs, domain)
+	
+	plot(domain, profile)
 end
 
 # ╔═╡ ed8db320-6515-400e-857a-0ece8c7d5d90
