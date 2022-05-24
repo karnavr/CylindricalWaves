@@ -4,11 +4,22 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
+
 # ╔═╡ 8cbf8d32-3ff4-4fdb-bf14-446c5af4f090
 begin
 	using Plots
 	using LaTeXStrings
 	using NLsolve
+	using PlutoUI
 end
 
 # ╔═╡ 47731d8f-8a84-4893-b836-aed861ea3231
@@ -67,8 +78,6 @@ function equations!(equation, coeffs, s)
         F_z = F_z .+ coeffs[i+1] * (-1)*(i*2*pi) .* sin.(i*2*pi .* domain)
         F_zz = F_zz .+ coeffs[i+1] * (-1)*(i*2*pi)^2 .* cos.(i*2*pi .* domain)
 	end
-
-	# equation = zeros(N+1)		# initialize equations vector (N+1 elements)
 
 	# define N equations using eq. (5.3) - one for each mesh point
 	for i = 1:N
@@ -154,7 +163,7 @@ begin
 	for i = 1:branchPoints
 
 		# set current s value (via a closure around equations!)
-		s = s_vals[i]
+		local s = s_vals[i]
 		eqns!(equation, coeffs) = equations!(equation, coeffs, s)
 
 		# solve for current s value (gives [B*, fourierCoeffs])
@@ -172,21 +181,33 @@ end
 # ╔═╡ 8f30b396-b0f4-4734-a9d6-dc04a373e2a7
 solutions
 
+# ╔═╡ e75645c2-33ae-4408-a9a2-21ff834f0ab2
+
+
 # ╔═╡ 31669ce4-b070-445d-901c-51f52a0e3a10
 md"#### Plot bifurcation branch"
 
 # ╔═╡ 30dea1d9-085c-43e6-a8c5-1243d1e4981b
 begin
-	scatter(s_vals[2:end], Bstars[2:end], legend = false)
+	scatter(s_vals[2:end], Bstars[2:end], legend = false, markersize=4)
 	annotate!(0.10,4.3,("branch points = $(branchPoints)", 10))
 	xlabel!(L"s"); ylabel!(L"B^*")
 end
+
+# ╔═╡ bb56805c-5462-4eeb-ad7f-64907fc545c3
+md"convert results from fourier to real space and plot profiles"
+
+# ╔═╡ b68d0545-345f-4971-9dd1-a73aa0853352
+@bind profile_index PlutoUI.Slider(1:(branchPoints-1), default=round(branchPoints/2))
 
 # ╔═╡ 0d36f264-9cb7-4815-9d7c-f7ff35e85b8b
 
 
 # ╔═╡ aee07280-d4d5-4aff-b8df-7017965b9da6
 md"#### Other random tests and function definitions"
+
+# ╔═╡ bd1467df-e558-4c99-949d-6a6fa09ddbed
+md"##### Using AutoDiff"
 
 # ╔═╡ a4b6ff19-0597-4075-bcec-3684f5dbe95b
 md"create object of type `OnceDifferentiable` to pass to `NLsolve`"
@@ -200,6 +221,9 @@ end
 
 # ╔═╡ 44e7c5bd-4fbf-4a43-a226-2b0a94827618
 
+
+# ╔═╡ fd33306d-b82b-4054-af5c-fdc128e44e9e
+md"##### Function definitions"
 
 # ╔═╡ 5fd29c42-2f93-430d-8b59-f479a95943ec
 function finDiff1D(i, order, y, domain)
@@ -265,6 +289,25 @@ begin
 	plot(domain, profile)
 end
 
+# ╔═╡ 50aba242-b248-47f0-a471-860042598dfe
+begin
+	solution_coeffs = fourierCoeffs[2:end,:]
+	profiles = zero(solution_coeffs)		# initialize array for profiles
+
+	# convert results fourier -> real
+	for i = 1:length(solution_coeffs[:,1])
+		profiles[i,:] = fourierToReal(solution_coeffs[i,:], domain)
+	end
+end
+
+# ╔═╡ bc2c2814-5114-48ab-a93f-c21b01ba60c8
+begin
+	plot(domain, profiles[profile_index,:], legend = false, lw=2)
+	
+	xlabel!(L"z"); ylabel!(L"F(z)")
+	title!("s = $(round(s_vals[profile_index]; digits=4))", titlefontsize=10)
+end
+
 # ╔═╡ ed8db320-6515-400e-857a-0ece8c7d5d90
 
 
@@ -316,12 +359,14 @@ FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
 FiniteDifferences = "~0.12.24"
 LaTeXStrings = "~1.3.0"
 NLsolve = "~4.5.1"
 Plots = "~1.29.0"
+PlutoUI = "~0.7.39"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -330,6 +375,12 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.7.2"
 manifest_format = "2.0"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.1.4"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -608,6 +659,24 @@ deps = ["Artifacts", "Cairo_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll",
 git-tree-sha1 = "129acf094d168394e80ee1dc4bc06ec835e510a3"
 uuid = "2e76f6c2-a576-52d4-95c1-20adfe4de566"
 version = "2.8.1+1"
+
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.4"
+
+[[deps.HypertextLiteral]]
+deps = ["Tricks"]
+git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
+uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+version = "0.9.4"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "0.2.2"
 
 [[deps.IniFile]]
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
@@ -912,6 +981,12 @@ git-tree-sha1 = "d457f881ea56bbfa18222642de51e0abf67b9027"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.29.0"
 
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
+git-tree-sha1 = "8d1f54886b9037091edf146b517989fc4a09efec"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.39"
+
 [[deps.Preferences]]
 deps = ["TOML"]
 git-tree-sha1 = "47e5f437cc0e7ef2ce8406ce1e7e24d44915f88d"
@@ -1068,6 +1143,11 @@ version = "0.1.1"
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[deps.Tricks]]
+git-tree-sha1 = "6bac775f2d42a611cdfcd1fb217ee719630c4175"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.6"
 
 [[deps.URIs]]
 git-tree-sha1 = "97bbe755a53fe859669cd907f2d96aee8d2c1355"
@@ -1331,15 +1411,22 @@ version = "0.9.1+5"
 # ╟─acf0da0a-b2ac-42a8-8d13-0ef7561d4118
 # ╠═af3bb7bd-2248-45d3-b876-e88a247a14cc
 # ╠═8f30b396-b0f4-4734-a9d6-dc04a373e2a7
+# ╟─e75645c2-33ae-4408-a9a2-21ff834f0ab2
 # ╟─31669ce4-b070-445d-901c-51f52a0e3a10
 # ╠═30dea1d9-085c-43e6-a8c5-1243d1e4981b
+# ╟─bb56805c-5462-4eeb-ad7f-64907fc545c3
+# ╠═50aba242-b248-47f0-a471-860042598dfe
+# ╟─b68d0545-345f-4971-9dd1-a73aa0853352
+# ╠═bc2c2814-5114-48ab-a93f-c21b01ba60c8
 # ╟─0d36f264-9cb7-4815-9d7c-f7ff35e85b8b
 # ╟─aee07280-d4d5-4aff-b8df-7017965b9da6
+# ╟─bd1467df-e558-4c99-949d-6a6fa09ddbed
 # ╟─a4b6ff19-0597-4075-bcec-3684f5dbe95b
 # ╟─e45703ad-63df-4609-be4b-cab05e490efe
 # ╟─44e7c5bd-4fbf-4a43-a226-2b0a94827618
+# ╟─fd33306d-b82b-4054-af5c-fdc128e44e9e
 # ╟─5fd29c42-2f93-430d-8b59-f479a95943ec
-# ╠═ce17061a-3dec-415b-9db9-2aaee391dd88
+# ╟─ce17061a-3dec-415b-9db9-2aaee391dd88
 # ╟─ed8db320-6515-400e-857a-0ece8c7d5d90
 # ╟─e926fd00-498c-4691-a124-f7d6d642008b
 # ╠═47731d8f-8a84-4893-b836-aed861ea3231
