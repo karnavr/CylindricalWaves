@@ -45,8 +45,61 @@ md"###### defining the system of equations
 
 define $N+1$ equations for the $N$ unknown fourier coefficients $u_N$ and the unknown $B^*$"
 
+# ╔═╡ 74c78bd5-ebde-43f2-a3d1-2c9ad06b8079
+function equations!(equation, coeffs)
+
+	N = length(coeffs) - 1		# number of mesh points
+
+	# Bstar = popfirst!(coeffs)	# get/remove B* from coeffs array (now N elements)
+	Bstar = coeffs[1]
+	coeffs = coeffs[2:N+1]
+
+	# convert from Fourier space to real space (eq. 5.5)
+	F = 0
+	F_z = 0
+	F_zz = 0
+	domain = collect(range(0,0.5,N))
+	for i = 0:(N-1)
+		F = F .+ coeffs[i+1] .* cos.(i*2*π .* domain) 
+
+		# take derivatives analytically
+        F_z = F_z .+ coeffs[i+1] * (-1)*(i*2*pi) .* sin.(i*2*pi .* domain)
+        F_zz = F_zz .+ coeffs[i+1] * (-1)*(i*2*pi)^2 .* cos.(i*2*pi .* domain)
+	end
+
+	# equation = zeros(N+1)		# initialize equations vector (N+1 elements)
+
+	# define N equations using eq. (5.3) - one for each mesh point
+	for i = 1:N
+		
+		# derivatives at current mesh point 
+		# F_z = finDiff1D(i, 1, F, domain)
+		# F_zz = finDiff1D(i, 2, F, domain)
+
+		# define K (eq. 2.6)
+		k1 = F_zz[i] ./ ((1 .+ F_z[i].^2).^(3/2))
+		k2 = 1 ./ sqrt(1 .+ F_z[i].^2)
+		k3 = 1/F[i]
+
+		K = k1 .- k2.*k3
+
+		equation[i] = Bstar .+ K 	# eq. 5.3
+	end
+
+	# define one more equation using eq. 5.7 (N+1 total now)
+	equation[N+1] = F[1] - F[length(F)] - 0.18
+	
+	return equation
+end
+
 # ╔═╡ 36b4caae-7bae-431a-bf94-7c925b7f93f0
 md"define a *closure* around our general `equations` function to solve the system for a specific value of steepness $s$. we will later have to define this for each point on the bifurcation branch."
+
+# ╔═╡ 9abb54f2-bf02-4435-ac00-0aad6ecf6967
+# begin
+# 	s = 0.18
+# 	eqn!(equation, coeffs) = equations!(equation, coeffs, s)
+# end
 
 # ╔═╡ f416c5c2-3946-4dcf-85ed-dde9ae61f89a
 md"create an initial guess:
@@ -57,14 +110,42 @@ $$[B^*, a_0, a_1, a_2, \cdots] = [5.8, 0.17, 0.09, 0, \cdots]$$"
 begin
 	N = 90
 	initial_guess = zeros(N+1)
-	initial_guess[1:3] = [5.8, 0.17, 0.09]
+	initial_guess[1:3] = [6.25, 0.17, 0.09]
+end
+
+# ╔═╡ 51cae372-24bb-4b8f-8297-c5735eddc9da
+md"use `NLsolve` to solve our system"
+
+# ╔═╡ 8ca84f28-fbda-429c-9f77-a751bb303917
+sol = nlsolve(equations!, initial_guess)
+
+# ╔═╡ 654c8155-7c86-459d-9b1d-e85d5ec7419b
+begin
+	solution = sol.zero
+	myB = solution[1]
+	fouriercoeffs = solution[2:N+1]
+	domain = collect(range(0,0.5,N))
+
+	profile = 0 
+	for i = 0:(N-1)
+		profile = profile .+ fouriercoeffs[i+1] .* cos.(i*2*π .* domain) 
+	end
+	
+	plot(domain, profile)
+end
+
+# ╔═╡ a4b6ff19-0597-4075-bcec-3684f5dbe95b
+md"create object of type `OnceDifferentiable` to pass to `NLsolve`"
+
+# ╔═╡ e45703ad-63df-4609-be4b-cab05e490efe
+begin
+	initial_F = similar(initial_guess)
+	df = OnceDifferentiable(equations!, initial_guess, initial_F)
+	nlsolve(df, initial_guess)
 end
 
 # ╔═╡ 44e7c5bd-4fbf-4a43-a226-2b0a94827618
 
-
-# ╔═╡ 51cae372-24bb-4b8f-8297-c5735eddc9da
-md"use `NLsolve` to solve our system"
 
 # ╔═╡ 5fd29c42-2f93-430d-8b59-f479a95943ec
 function finDiff1D(i, order, y, domain)
@@ -103,66 +184,6 @@ function finDiff1D(i, order, y, domain)
 
 	return derivative
 end
-
-# ╔═╡ 74c78bd5-ebde-43f2-a3d1-2c9ad06b8079
-function equations(equation, coeffs, s)
-
-	N = length(coeffs) - 1		# number of mesh points
-
-	Bstar = popfirst!(coeffs)	# get/remove B* from coeffs array (now N elements)
-	# Bstar = coeffs[1]
-	# coeffs = coeffs[2:N]
-
-	# convert from Fourier space to real space (eq. 5.5)
-	F = 0
-	domain = collect(range(0,0.5,N))
-	for i = 0:(N-1)
-		F = F .+ coeffs[i+1] .* cos.(i*2*π .* domain) 
-	end
-
-	# equation = zeros(N+1)		# initialize equations vector (N+1 elements)
-
-	# define N equations using eq. (5.3) - one for each mesh point
-	for i = 1:N
-		
-		# derivatives at current mesh point 
-		F_z = finDiff1D(i, 1, F, domain)
-		F_zz = finDiff1D(i, 2, F, domain)
-
-		# define K (eq. 2.6)
-		k1 = F_zz ./ ((1 .+ F_zz.^2).^(3/2))
-		k2 = 1 ./ sqrt(1 .+ F_zz.^2)
-		k3 = 1/F[i]
-
-		K = k1 .- k2.*k3
-
-		equation[i] = Bstar .+ K 	# eq. 5.3
-	end
-
-	# define one more equation using eq. 5.7 (N+1 total now)
-	equation[N+1] = F[1] - F[length(F)] - s
-	
-	return equation
-end
-
-# ╔═╡ 9abb54f2-bf02-4435-ac00-0aad6ecf6967
-begin
-	s = 0.18
-	eqn!(equation, coeffs) = equations(equation, coeffs, s)
-end
-
-# ╔═╡ e45703ad-63df-4609-be4b-cab05e490efe
-begin
-	initial_F = similar(initial_guess)
-	df = OnceDifferentiable(eqn!, initial_guess, initial_F)
-	nlsolve(df, initial_guess)
-end
-
-# ╔═╡ 8ca84f28-fbda-429c-9f77-a751bb303917
-# ╠═╡ disabled = true
-#=╠═╡
-nlsolve(eqn!, initial_guess)
-  ╠═╡ =#
 
 # ╔═╡ ed8db320-6515-400e-857a-0ece8c7d5d90
 
@@ -204,7 +225,7 @@ begin
 	a = [1;5]
 	g!(x,dx) = f!(x,dx,a) # g is our closure for a specific a
 	
-	solution = nlsolve(g!,[1.0;1.0])
+	hkjashfd = nlsolve(g!,[1.0;1.0])
 	# res.zero # should give out [1;5] as the solution
 end
 
@@ -237,11 +258,11 @@ version = "3.3.3"
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
-[[deps.ArrayInterface]]
-deps = ["Compat", "IfElse", "LinearAlgebra", "Requires", "SparseArrays", "Static"]
-git-tree-sha1 = "81f0cb60dc994ca17f68d9fb7c942a5ae70d9ee4"
-uuid = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
-version = "5.0.8"
+[[deps.ArrayInterfaceCore]]
+deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
+git-tree-sha1 = "8a9c02f9d323d4dd8a47245abb106355bf7b45e6"
+uuid = "30b0a656-2188-435a-8636-2ec0e6a096e2"
+version = "0.1.2"
 
 [[deps.Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -263,9 +284,9 @@ version = "1.16.1+1"
 
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "9950387274246d08af38f6eef8cb5480862a435f"
+git-tree-sha1 = "9489214b993cd42d17f44c36e359bf6a7c919abf"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "1.14.0"
+version = "1.15.0"
 
 [[deps.ChangesOfVariables]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
@@ -281,15 +302,15 @@ version = "3.18.0"
 
 [[deps.ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
-git-tree-sha1 = "63d1e802de0c4882c00aee5cb16f9dd4d6d7c59c"
+git-tree-sha1 = "a985dc37e357a3b22b260a5def99f3530fb415d3"
 uuid = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
-version = "0.11.1"
+version = "0.11.2"
 
 [[deps.ColorVectorSpace]]
 deps = ["ColorTypes", "FixedPointNumbers", "LinearAlgebra", "SpecialFunctions", "Statistics", "TensorCore"]
-git-tree-sha1 = "3f1f500312161f1ae067abe07d13b40f78f32e07"
+git-tree-sha1 = "d08c20eef1f2cbc6e60fd3612ac4340b89fea322"
 uuid = "c3611d14-8923-5661-9e6a-0046d554d3a4"
-version = "0.9.8"
+version = "0.9.9"
 
 [[deps.Colors]]
 deps = ["ColorTypes", "FixedPointNumbers", "Reexport"]
@@ -304,10 +325,10 @@ uuid = "bbf7d656-a473-5ed7-a52c-81e309532950"
 version = "0.3.0"
 
 [[deps.Compat]]
-deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "b153278a25dd42c65abbf4e62344f9d22e59191b"
+deps = ["Dates", "LinearAlgebra", "UUIDs"]
+git-tree-sha1 = "924cdca592bc16f14d2f7006754a621735280b74"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "3.43.0"
+version = "4.1.0"
 
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -326,9 +347,9 @@ version = "1.10.0"
 
 [[deps.DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "cc1a8e22627f33c789ab60b36a9132ac050bbf75"
+git-tree-sha1 = "d1fff3a548102f48987a52a2e0d114fa97d730f0"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.18.12"
+version = "0.18.13"
 
 [[deps.DataValueInterfaces]]
 git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
@@ -400,10 +421,10 @@ uuid = "b22a6f82-2f65-5046-a5b2-351ab43fb4e5"
 version = "4.4.0+0"
 
 [[deps.FiniteDiff]]
-deps = ["ArrayInterface", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "51c8f36c81badaa0e9ec405dcbabaf345ed18c84"
+deps = ["ArrayInterfaceCore", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays"]
+git-tree-sha1 = "4fc79c0f63ddfdcdc623a8ce36623346a7ce9ae4"
 uuid = "6a86dc24-6348-571c-b903-95158fe2bd41"
-version = "2.11.1"
+version = "2.12.0"
 
 [[deps.FiniteDifferences]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Printf", "Random", "Richardson", "SparseArrays", "StaticArrays"]
@@ -431,9 +452,9 @@ version = "0.4.2"
 
 [[deps.ForwardDiff]]
 deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "LinearAlgebra", "LogExpFunctions", "NaNMath", "Preferences", "Printf", "Random", "SpecialFunctions", "StaticArrays"]
-git-tree-sha1 = "89cc49bf5819f0a10a7a3c38885e7c7ee048de57"
+git-tree-sha1 = "2f18915445b248731ec5db4e4a17e451020bf21e"
 uuid = "f6369f11-7733-5829-9624-2563aa707210"
-version = "0.10.29"
+version = "0.10.30"
 
 [[deps.FreeType2_jll]]
 deps = ["Artifacts", "Bzip2_jll", "JLLWrappers", "Libdl", "Pkg", "Zlib_jll"]
@@ -455,15 +476,15 @@ version = "3.3.6+0"
 
 [[deps.GR]]
 deps = ["Base64", "DelimitedFiles", "GR_jll", "HTTP", "JSON", "Libdl", "LinearAlgebra", "Pkg", "Printf", "Random", "RelocatableFolders", "Serialization", "Sockets", "Test", "UUIDs"]
-git-tree-sha1 = "af237c08bda486b74318c8070adb96efa6952530"
+git-tree-sha1 = "b316fd18f5bc025fedcb708332aecb3e13b9b453"
 uuid = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
-version = "0.64.2"
+version = "0.64.3"
 
 [[deps.GR_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Cairo_jll", "FFMPEG_jll", "Fontconfig_jll", "GLFW_jll", "JLLWrappers", "JpegTurbo_jll", "Libdl", "Libtiff_jll", "Pixman_jll", "Pkg", "Qt5Base_jll", "Zlib_jll", "libpng_jll"]
-git-tree-sha1 = "cd6efcf9dc746b06709df14e462f0a3fe0786b1e"
+git-tree-sha1 = "1e5490a51b4e9d07e8b04836f6008f46b48aaa87"
 uuid = "d2c73de3-f751-5644-a686-071e5b155ba9"
-version = "0.64.2+0"
+version = "0.64.3+0"
 
 [[deps.GeometryBasics]]
 deps = ["EarCut_jll", "IterTools", "LinearAlgebra", "StaticArrays", "StructArrays", "Tables"]
@@ -505,11 +526,6 @@ deps = ["Artifacts", "Cairo_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll",
 git-tree-sha1 = "129acf094d168394e80ee1dc4bc06ec835e510a3"
 uuid = "2e76f6c2-a576-52d4-95c1-20adfe4de566"
 version = "2.8.1+1"
-
-[[deps.IfElse]]
-git-tree-sha1 = "debdd00ffef04665ccbb3e150747a77560e8fad1"
-uuid = "615f187c-cbe4-4ef1-ba3b-2fcf58d6d173"
-version = "0.1.1"
 
 [[deps.IniFile]]
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
@@ -884,10 +900,6 @@ version = "1.1.0"
 [[deps.Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
-[[deps.SharedArrays]]
-deps = ["Distributed", "Mmap", "Random", "Serialization"]
-uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
-
 [[deps.Showoff]]
 deps = ["Dates", "Grisu"]
 git-tree-sha1 = "91eddf657aca81df9ae6ceb20b959ae5653ad1de"
@@ -909,15 +921,9 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[deps.SpecialFunctions]]
 deps = ["ChainRulesCore", "IrrationalConstants", "LogExpFunctions", "OpenLibm_jll", "OpenSpecFun_jll"]
-git-tree-sha1 = "5ba658aeecaaf96923dce0da9e703bd1fe7666f9"
+git-tree-sha1 = "bc40f042cfcc56230f781d92db71f0e21496dffd"
 uuid = "276daf66-3868-5448-9aa4-cd146d93841b"
-version = "2.1.4"
-
-[[deps.Static]]
-deps = ["IfElse"]
-git-tree-sha1 = "5309da1cdef03e95b73cd3251ac3a39f887da53e"
-uuid = "aedffcd0-7271-4cad-89d0-dc628f76c6d3"
-version = "0.6.4"
+version = "2.1.5"
 
 [[deps.StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
@@ -943,9 +949,13 @@ version = "0.33.16"
 
 [[deps.StructArrays]]
 deps = ["Adapt", "DataAPI", "StaticArrays", "Tables"]
-git-tree-sha1 = "e75d82493681dfd884a357952bbd7ab0608e1dc3"
+git-tree-sha1 = "9abba8f8fb8458e9adf07c8a2377a070674a24f1"
 uuid = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
-version = "0.6.7"
+version = "0.6.8"
+
+[[deps.SuiteSparse]]
+deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
+uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 
 [[deps.TOML]]
 deps = ["Dates"]
@@ -1230,10 +1240,12 @@ version = "0.9.1+5"
 # ╠═9abb54f2-bf02-4435-ac00-0aad6ecf6967
 # ╟─f416c5c2-3946-4dcf-85ed-dde9ae61f89a
 # ╠═3eb28366-3b39-471f-8340-61b404b89b1d
-# ╠═e45703ad-63df-4609-be4b-cab05e490efe
-# ╟─44e7c5bd-4fbf-4a43-a226-2b0a94827618
 # ╟─51cae372-24bb-4b8f-8297-c5735eddc9da
 # ╠═8ca84f28-fbda-429c-9f77-a751bb303917
+# ╠═654c8155-7c86-459d-9b1d-e85d5ec7419b
+# ╟─a4b6ff19-0597-4075-bcec-3684f5dbe95b
+# ╠═e45703ad-63df-4609-be4b-cab05e490efe
+# ╟─44e7c5bd-4fbf-4a43-a226-2b0a94827618
 # ╟─5fd29c42-2f93-430d-8b59-f479a95943ec
 # ╟─ed8db320-6515-400e-857a-0ece8c7d5d90
 # ╟─e926fd00-498c-4691-a124-f7d6d642008b
