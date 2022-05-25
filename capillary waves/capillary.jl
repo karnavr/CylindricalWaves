@@ -20,7 +20,11 @@ begin
 	using LaTeXStrings
 	using NLsolve
 	using PlutoUI
+	using DelimitedFiles
 end
+
+# ╔═╡ 53b782b0-3b2a-4457-985f-1c58b2a56521
+using ProgressLogging
 
 # ╔═╡ 47731d8f-8a84-4893-b836-aed861ea3231
 using FiniteDifferences
@@ -146,7 +150,7 @@ We can now solve for multiple profiles by computing points on the birfurcation b
 
 # ╔═╡ af3bb7bd-2248-45d3-b876-e88a247a14cc
 begin
-	branchPoints = 20
+	branchPoints = 50
 	s_vals = collect(range(0.001,0.5,branchPoints))
 
 	# initial guess for first bifurcation point
@@ -160,7 +164,7 @@ begin
 	fourierCoeffs = zeros(branchPoints, N)
 
 	# solve for each point on branch (vary steepness)
-	for i = 1:branchPoints
+	@progress for i = 1:branchPoints
 
 		# set current s value (via a closure around equations!)
 		local s = s_vals[i]
@@ -178,6 +182,12 @@ begin
 	end
 end
 
+# ╔═╡ 812fdee5-8b82-4de8-a8e9-b85c25d5f723
+md"Save solution for `branchPoints = 100` to avoid recomputation"
+
+# ╔═╡ 52eb0264-bde1-4ca9-b810-b15000e20670
+writedlm("solutions.csv",  solutions, ',')
+
 # ╔═╡ 8f30b396-b0f4-4734-a9d6-dc04a373e2a7
 solutions
 
@@ -185,7 +195,7 @@ solutions
 
 
 # ╔═╡ 31669ce4-b070-445d-901c-51f52a0e3a10
-md"#### Plot bifurcation branch"
+md"#### Bifurcation branch"
 
 # ╔═╡ 30dea1d9-085c-43e6-a8c5-1243d1e4981b
 begin
@@ -197,8 +207,11 @@ end
 # ╔═╡ bb56805c-5462-4eeb-ad7f-64907fc545c3
 md"convert results from fourier to real space and plot profiles"
 
+# ╔═╡ e6cb08b2-8de7-41c6-afe9-62b4bac3e69b
+md"#### Wave profiles"
+
 # ╔═╡ b68d0545-345f-4971-9dd1-a73aa0853352
-@bind profile_index PlutoUI.Slider(1:(branchPoints-1), default=round(branchPoints/2))
+@bind profile_index PlutoUI.Slider(1:(branchPoints-1), default=round(branchPoints/3))
 
 # ╔═╡ 0d36f264-9cb7-4815-9d7c-f7ff35e85b8b
 
@@ -355,11 +368,13 @@ end
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+ProgressLogging = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
 
 [compat]
 FiniteDifferences = "~0.12.24"
@@ -367,6 +382,7 @@ LaTeXStrings = "~1.3.0"
 NLsolve = "~4.5.1"
 Plots = "~1.29.0"
 PlutoUI = "~0.7.39"
+ProgressLogging = "~0.1.4"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -997,6 +1013,12 @@ version = "1.3.0"
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
+[[deps.ProgressLogging]]
+deps = ["Logging", "SHA", "UUIDs"]
+git-tree-sha1 = "80d919dee55b9c50e8d9e2da5eeafff3fe58b539"
+uuid = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
+version = "0.1.4"
+
 [[deps.Qt5Base_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Fontconfig_jll", "Glib_jll", "JLLWrappers", "Libdl", "Libglvnd_jll", "OpenSSL_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libxcb_jll", "Xorg_xcb_util_image_jll", "Xorg_xcb_util_keysyms_jll", "Xorg_xcb_util_renderutil_jll", "Xorg_xcb_util_wm_jll", "Zlib_jll", "xkbcommon_jll"]
 git-tree-sha1 = "c6c0f690d0cc7caddb74cef7aa847b824a16b256"
@@ -1409,13 +1431,17 @@ version = "0.9.1+5"
 # ╠═654c8155-7c86-459d-9b1d-e85d5ec7419b
 # ╟─128de4ca-4655-4cc6-aca1-ccb573c640e5
 # ╟─acf0da0a-b2ac-42a8-8d13-0ef7561d4118
+# ╠═53b782b0-3b2a-4457-985f-1c58b2a56521
 # ╠═af3bb7bd-2248-45d3-b876-e88a247a14cc
+# ╟─812fdee5-8b82-4de8-a8e9-b85c25d5f723
+# ╠═52eb0264-bde1-4ca9-b810-b15000e20670
 # ╠═8f30b396-b0f4-4734-a9d6-dc04a373e2a7
 # ╟─e75645c2-33ae-4408-a9a2-21ff834f0ab2
 # ╟─31669ce4-b070-445d-901c-51f52a0e3a10
 # ╠═30dea1d9-085c-43e6-a8c5-1243d1e4981b
 # ╟─bb56805c-5462-4eeb-ad7f-64907fc545c3
 # ╠═50aba242-b248-47f0-a471-860042598dfe
+# ╟─e6cb08b2-8de7-41c6-afe9-62b4bac3e69b
 # ╟─b68d0545-345f-4971-9dd1-a73aa0853352
 # ╠═bc2c2814-5114-48ab-a93f-c21b01ba60c8
 # ╟─0d36f264-9cb7-4815-9d7c-f7ff35e85b8b
