@@ -86,7 +86,7 @@ function equations!(equation, coeffs, s)
 	# define N equations using eq. (5.3) - one for each mesh point
 	for i = 1:N
 		
-		# derivatives at current mesh point 
+		# derivatives at current mesh point
 		# F_z = finDiff1D(i, 1, F, domain)
 		# F_zz = finDiff1D(i, 2, F, domain)
 
@@ -150,7 +150,7 @@ We can now solve for multiple profiles by computing points on the birfurcation b
 
 # ╔═╡ af3bb7bd-2248-45d3-b876-e88a247a14cc
 begin
-	branchPoints = 50
+	branchPoints = 100 		# takes ~8 mins
 	s_vals = collect(range(0.001,0.5,branchPoints))
 
 	# initial guess for first bifurcation point
@@ -159,7 +159,7 @@ begin
 
 	# initialize solutions arrays
 	solutions = zeros(branchPoints+1, N+1) # one extra solution for first guess
-	solutions[1, 1:3] = [2*pi, 0.17, 0.09]
+	solutions[1, 1:3] = [2*pi, 0.17, 0.09] # add initial guess
 	Bstars = zeros(branchPoints)
 	fourierCoeffs = zeros(branchPoints, N)
 
@@ -299,7 +299,8 @@ begin
 
 	profile = fourierToReal(fouriercoeffs, domain)
 	
-	plot(domain, profile)
+	plot(domain, profile, legend=false)
+	xlabel!(L"s"); ylabel!(L"F(z)")
 end
 
 # ╔═╡ 50aba242-b248-47f0-a471-860042598dfe
