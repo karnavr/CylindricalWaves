@@ -14,6 +14,7 @@ begin
 	using NumericalIntegration
 	# TableOfContents()
 	using SpecialFunctions
+	using FFTW
 end
 
 # ╔═╡ 91275ace-dd2a-11ec-2b93-3398b4ce817e
@@ -50,8 +51,19 @@ function initialc0()
 end
 
 # ╔═╡ 1e9610ba-93e0-4851-b7bf-fd5113642ef9
-function fftDerivative()
-	# will write later
+function fftDerivative(func, domain, order)
+
+	# get domain points and spacing
+	N = length(domain)
+	dx = abs(domain[1] - domain[2])
+
+	k = 2 .* π .* fftfreq(N, 1/dx)	# compute wavenumbers (spatial freq)
+	fhat = fft(func)				# (fast) fourier transform 
+
+	# multiply in fourier space for derivative, return to original + take real part
+	derivative = real(ifft((k.*im).^order .* fhat))
+
+	return derivative
 end
 
 # ╔═╡ ec01c7dd-fcab-45fe-af3c-2ce0485daaf0
@@ -125,10 +137,20 @@ plot(bess_x, besselk.(1, bess_x))
 # ╔═╡ b109ded4-e3fa-448e-a733-260ea5fb08f9
 md"###### FFT Derivatives"
 
+# ╔═╡ cad0b000-855b-4461-b65b-e26ef98f170a
+begin
+	deriv_domain = collect(range(0,2*π, 100))
+	
+	plot(deriv_domain, sin.(deriv_domain), label = "sin(x)")
+	plot!(deriv_domain, cos.(deriv_domain), label="cos(x)")
+	plot!(deriv_domain, fftDerivative(sin.(deriv_domain), deriv_domain, 1), label="approx")
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 NumericalIntegration = "e7bfaba1-d571-5449-8927-abc22e82249b"
@@ -137,6 +159,7 @@ PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
+FFTW = "~1.4.6"
 LaTeXStrings = "~1.3.0"
 NLsolve = "~4.5.1"
 NumericalIntegration = "~0.3.3"
@@ -151,6 +174,12 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.7.2"
 manifest_format = "2.0"
+
+[[deps.AbstractFFTs]]
+deps = ["ChainRulesCore", "LinearAlgebra"]
+git-tree-sha1 = "6f1d9bc1c08f9f4a8fa92e3ea3cb50153a1b40d4"
+uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
+version = "1.1.0"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -335,6 +364,18 @@ git-tree-sha1 = "d8a578692e3077ac998b50c0217dfd67f21d1e5f"
 uuid = "b22a6f82-2f65-5046-a5b2-351ab43fb4e5"
 version = "4.4.0+0"
 
+[[deps.FFTW]]
+deps = ["AbstractFFTs", "FFTW_jll", "LinearAlgebra", "MKL_jll", "Preferences", "Reexport"]
+git-tree-sha1 = "505876577b5481e50d089c1c68899dfb6faebc62"
+uuid = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+version = "1.4.6"
+
+[[deps.FFTW_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "c6033cc3892d0ef5bb9cd29b7f2f0331ea5184ea"
+uuid = "f5851436-0d7a-5f13-b9de-f02708fd171a"
+version = "3.3.10+0"
+
 [[deps.FiniteDiff]]
 deps = ["ArrayInterfaceCore", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays"]
 git-tree-sha1 = "4fc79c0f63ddfdcdc623a8ce36623346a7ce9ae4"
@@ -459,6 +500,12 @@ git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
 uuid = "83e8ac13-25f8-5344-8a64-a9f2b223428f"
 version = "0.5.1"
 
+[[deps.IntelOpenMP_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "d979e54b71da82f3a65b62553da4fc3d18c9004c"
+uuid = "1d5cc7b8-4909-519e-a0f8-d0f5ad9712d0"
+version = "2018.0.3+2"
+
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
@@ -536,6 +583,10 @@ deps = ["Formatting", "InteractiveUtils", "LaTeXStrings", "MacroTools", "Markdow
 git-tree-sha1 = "46a39b9c58749eefb5f2dc1178cb8fab5332b1ab"
 uuid = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
 version = "0.15.15"
+
+[[deps.LazyArtifacts]]
+deps = ["Artifacts", "Pkg"]
+uuid = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
 
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -622,6 +673,12 @@ version = "0.3.15"
 
 [[deps.Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
+
+[[deps.MKL_jll]]
+deps = ["Artifacts", "IntelOpenMP_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "Pkg"]
+git-tree-sha1 = "e595b205efd49508358f7dc670a940c790204629"
+uuid = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
+version = "2022.0.0+0"
 
 [[deps.MacroTools]]
 deps = ["Markdown", "Random"]
@@ -1203,7 +1260,7 @@ version = "0.9.1+5"
 # ╟─3906fb16-3cc8-4409-bfcb-f2c0001d8cee
 # ╟─8e6129b5-ab66-47fc-9e95-f665451cf479
 # ╟─32e15fce-da52-46e2-9043-7a95e76a2235
-# ╟─1e9610ba-93e0-4851-b7bf-fd5113642ef9
+# ╠═1e9610ba-93e0-4851-b7bf-fd5113642ef9
 # ╟─ec01c7dd-fcab-45fe-af3c-2ce0485daaf0
 # ╟─2ac9a275-29b1-4988-869b-19a649058348
 # ╟─1f356bf8-add4-43af-837b-993124182604
@@ -1217,5 +1274,6 @@ version = "0.9.1+5"
 # ╠═5efbb4e5-20e2-4b90-bd02-514d6802085d
 # ╟─0a51dde1-fcf6-4af9-afc0-2fba1c60ee2e
 # ╟─b109ded4-e3fa-448e-a733-260ea5fb08f9
+# ╠═cad0b000-855b-4461-b65b-e26ef98f170a
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
