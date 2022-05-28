@@ -90,13 +90,34 @@ begin
 	for i = 0:3
 		bess_I[i+1,:] = besseli.(i, bess_x)
 	end
+	
 	# modified of second kind (K)
+	bess_K = zeros(4,length(bess_x))
+	for i = 0:3
+		bess_K[i+1,:] = besselk.(i, bess_x)
+	end
 end
 
 # ╔═╡ 46d03c6d-9702-49e4-9b9e-ea8874ec1ff0
 begin
-	plot(bess_x, bess_I[1,:])
+	plot(bess_x, bess_I[1,:], label = "α = 0")
+	for i = 2:length(bess_I[:,1])
+		plot!(bess_x, bess_I[i,:], label = "α = $(i-1)")
+	end
+	ylabel!(L"I_\alpha (x)")
 end
+
+# ╔═╡ 1e1299c5-55b8-4097-be6c-3e7d85a64b4f
+begin
+	plot(bess_x, bess_K[1,:], label = "α = 0")
+	for i = 2:length(bess_K[:,1])
+		plot!(bess_x, bess_K[i,:], label = "α = $(i-1)")
+	end
+	ylabel!(L"K_\alpha (x)")
+end
+
+# ╔═╡ 5efbb4e5-20e2-4b90-bd02-514d6802085d
+plot(bess_x, besselk.(1, bess_x))
 
 # ╔═╡ 0a51dde1-fcf6-4af9-afc0-2fba1c60ee2e
 
@@ -1192,6 +1213,8 @@ version = "0.9.1+5"
 # ╟─c7c10e1f-bee3-4153-a14c-1ad2c197b617
 # ╠═d22d5de4-8b0a-4328-b39d-2b7158a93055
 # ╠═46d03c6d-9702-49e4-9b9e-ea8874ec1ff0
+# ╠═1e1299c5-55b8-4097-be6c-3e7d85a64b4f
+# ╠═5efbb4e5-20e2-4b90-bd02-514d6802085d
 # ╟─0a51dde1-fcf6-4af9-afc0-2fba1c60ee2e
 # ╟─b109ded4-e3fa-448e-a733-260ea5fb08f9
 # ╟─00000000-0000-0000-0000-000000000001
