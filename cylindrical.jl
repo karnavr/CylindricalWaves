@@ -31,6 +31,25 @@ Axially symmetric waves propagating on a general cylindrical geometry are comput
 
 "
 
+# ╔═╡ f0987e90-a086-46c2-9624-47de29c3f355
+md"### Solve for one profile"
+
+# ╔═╡ 923aa225-f380-40b1-86d0-96c87f23a9fd
+md"###### define system of equations
+
+define $2N + 2$ equations for the $2N + 1$ unknown fourier coefficents $u_N$ and unknown  speed $c$. but first, we need to define the integrand"
+
+# ╔═╡ 1b6d1531-4bcd-4928-af58-7ce96b174c1c
+function integrands(S, z, c)
+
+	
+	
+	return fullIntegrand
+end
+
+# ╔═╡ 56c68c83-2c0b-4b57-8212-12f12e75b767
+md"now define $2N + 2$ equations for the $2N + 1$ unknown fourier coefficents $u_N$ and unknown  speed $c$"
+
 # ╔═╡ 9f4c2902-f41b-49fb-b830-762fd4710819
 
 
@@ -49,6 +68,33 @@ function fourierToReal(coeffs, domain)
 	end
 
 	return profile
+end
+
+# ╔═╡ 6ad4bd3a-596d-43e3-9749-b26af940b72b
+function equations!(equation, unknowns)
+
+	c = unknowns[1]
+	coeffs = unknowns[2:end]
+
+	# define parameters 
+	N = (length(coeffs) - 1)/2 	# should = 30
+	L = π
+	B = 1.5
+	b = 0.1
+	ϵ = 1 - B/2
+
+	# define domain
+	h = 2*L/(2*N + 1)
+	z = collect(-L:h:L-h) 	# [-L, L-h] with (2N + 1) points
+
+	# convert from fourier space to real
+	S = fourierToReal(coeffs, domain)
+
+	# get 
+	
+
+	
+	return equation
 end
 
 # ╔═╡ 32e15fce-da52-46e2-9043-7a95e76a2235
@@ -167,8 +213,8 @@ begin
 	
 	plot(deriv_domain, sin.(deriv_domain), label = "sin(x)")
 	plot!(deriv_domain, cos.(deriv_domain), label="cos(x)")
-	plot!(deriv_domain, fftDerivative(sin.(deriv_domain), deriv_domain, 1), label="approx")
-	# ylims!(-1,1)
+	scatter!(deriv_domain, fftDerivative(sin.(deriv_domain), deriv_domain, 1), label="approx")
+	ylims!(-1,1)
 end
 
 # ╔═╡ f1de0c17-15ae-498a-baf1-b054c50802ad
@@ -1355,9 +1401,14 @@ version = "0.9.1+5"
 # ╔═╡ Cell order:
 # ╟─91275ace-dd2a-11ec-2b93-3398b4ce817e
 # ╠═e700ec68-a85d-46af-af09-8ad680adf08d
+# ╟─f0987e90-a086-46c2-9624-47de29c3f355
+# ╟─923aa225-f380-40b1-86d0-96c87f23a9fd
+# ╠═1b6d1531-4bcd-4928-af58-7ce96b174c1c
+# ╟─56c68c83-2c0b-4b57-8212-12f12e75b767
+# ╠═6ad4bd3a-596d-43e3-9749-b26af940b72b
 # ╟─9f4c2902-f41b-49fb-b830-762fd4710819
 # ╟─3906fb16-3cc8-4409-bfcb-f2c0001d8cee
-# ╟─8e6129b5-ab66-47fc-9e95-f665451cf479
+# ╠═8e6129b5-ab66-47fc-9e95-f665451cf479
 # ╟─32e15fce-da52-46e2-9043-7a95e76a2235
 # ╠═1e9610ba-93e0-4851-b7bf-fd5113642ef9
 # ╟─ef430b76-6a6c-4eae-be91-205349ee39c3
