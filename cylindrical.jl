@@ -98,8 +98,23 @@ function equations!(equation, unknowns)
 end
 
 # ╔═╡ 32e15fce-da52-46e2-9043-7a95e76a2235
-function initialc0()
-	# will define later
+function initialc0(L, b, B)
+	
+	k1 = pi/L
+
+	# define components
+	one = 1/k1
+	
+	two_top = besseli(1,k1)*besselk(1,k1*b) - besseli(1,k1*b)*besselk(1,k1)
+	two_bottom = besseli(1,k1*b)*besselk(0,k1) + besseli(0,k1)*besselk(1,k1*b)
+	two = two_top/two_bottom
+
+	three = k1^2 - 1 + B
+
+	# define overall
+	c0 = sqrt(one*two*three)
+
+	return c0
 end
 
 # ╔═╡ 1e9610ba-93e0-4851-b7bf-fd5113642ef9
