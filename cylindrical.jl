@@ -12,13 +12,19 @@ begin
 	using PlutoUI
 	using DelimitedFiles
 	using NumericalIntegration
-	# TableOfContents()
 	using SpecialFunctions
 	using FFTW
+	TableOfContents()
+end
+
+# ╔═╡ f0c56283-8f07-4af9-a531-c8d2119c5ad4
+begin
+	using FiniteDifferences
+	central_fdm(5, 1)(sin, 1) - cos.(1)
 end
 
 # ╔═╡ 91275ace-dd2a-11ec-2b93-3398b4ce817e
-md"#### AFM Method for Cylindrical Geometry
+md"## AFM Method for Cylindrical Geometry
 
 Axially symmetric waves propagating on a general cylindrical geometry are computed numerically using the AFM method.
 
@@ -29,7 +35,7 @@ Axially symmetric waves propagating on a general cylindrical geometry are comput
 
 
 # ╔═╡ 3906fb16-3cc8-4409-bfcb-f2c0001d8cee
-md"#### Helper Function Definitions"
+md"### Helper Function Definitions"
 
 # ╔═╡ 8e6129b5-ab66-47fc-9e95-f665451cf479
 function fourierToReal(coeffs, domain)
@@ -66,11 +72,29 @@ function fftDerivative(func, domain, order)
 	return derivative
 end
 
+# ╔═╡ ef430b76-6a6c-4eae-be91-205349ee39c3
+function finiteDerivative(func, domain, order)
+
+	# data = function(index)
+	# 	func[index]
+	# end
+	
+	# N = length(domain)
+	# h = abs(domain[5] - domain[4])	# get domain spacing
+
+	# derivative = zeros(length(domain))
+
+	# # use central differences 
+	# for i = 1:length(domain)
+	# 	derivative[i] = central_fdm(5, order)(data, i)
+	# end
+end
+
 # ╔═╡ ec01c7dd-fcab-45fe-af3c-2ce0485daaf0
 
 
 # ╔═╡ 2ac9a275-29b1-4988-869b-19a649058348
-md"#### Testing Area"
+md"### Testing Area"
 
 # ╔═╡ 1f356bf8-add4-43af-837b-993124182604
 md"###### Numerical Integration"
@@ -83,7 +107,7 @@ end
 
 # ╔═╡ e1b64748-ac45-4d45-a8bd-19961a65b37d
 begin
-	x = collect(range(0,π,101))
+	x = collect(range(0,π,100))
 	integrate(x, y(x), Trapezoidal())
 end
 
@@ -144,6 +168,66 @@ begin
 	plot(deriv_domain, sin.(deriv_domain), label = "sin(x)")
 	plot!(deriv_domain, cos.(deriv_domain), label="cos(x)")
 	plot!(deriv_domain, fftDerivative(sin.(deriv_domain), deriv_domain, 1), label="approx")
+	# ylims!(-1,1)
+end
+
+# ╔═╡ f1de0c17-15ae-498a-baf1-b054c50802ad
+begin
+	using Statistics
+	meandiff = abs(mean(cos.(deriv_domain) - fftDerivative(sin.(deriv_domain), deriv_domain, 1)))
+	
+	md"(absolute) mean difference: $(meandiff)"
+end
+
+# ╔═╡ 9991578c-8a75-4640-91d0-9366ea49aded
+md"###### zero-padding test"
+
+# ╔═╡ d2d4fe8b-cca7-44ce-83d4-2ea70904379b
+md"zero-pad original function"
+
+# ╔═╡ 0dce458a-35cc-4337-84b2-0af93fab5aba
+begin
+	signal = sin.(deriv_domain)
+	newdata = zeros(length(deriv_domain)*2)
+	newdata[1:length(signal)] = signal
+	newdata
+end
+
+# ╔═╡ ff1c3bb4-3c25-43ac-8440-443fdf3d4eea
+deriv_domain_zeros = collect(range(0,2*π, length(newdata)))
+
+# ╔═╡ 2f88f9f2-37e9-4cb4-b783-349d8066fa62
+md"now take fft derivative"
+
+# ╔═╡ 73041a29-621b-471a-8792-52096bf2fbbe
+zeropad_deriv = fftDerivative(newdata, deriv_domain_zeros, 1)
+
+# ╔═╡ f3a4a788-3167-4241-9067-c0a811a04fa9
+begin
+	plot(deriv_domain_zeros, sin.(deriv_domain_zeros), label = "sin(x)")
+	plot!(deriv_domain_zeros, cos.(deriv_domain_zeros), label="cos(x)")
+	plot!(deriv_domain_zeros, zeropad_deriv, label="approx")
+end
+
+# ╔═╡ 024ff730-2413-4093-a81a-42dff90655a1
+md"###### understanding the `FFT` and `fftfreq` functions"
+
+# ╔═╡ 0341cc3f-0da7-4f85-b1a3-e3b3fadeb39c
+begin
+	signal_domain = collect(range(0, 2*pi, 1000))
+	# create signal 
+	raw_signal = cos.(signal_domain) + 0.5*cos.(2 .* signal_domain) + 0.75*cos.(3 .* signal_domain) + 0.24*cos.(4 .* signal_domain) + 0.26*cos.(9 .* signal_domain)
+end
+
+# ╔═╡ 658df38f-c230-4e60-97ed-27ce38b443db
+begin
+	signal_plot = plot(signal_domain, raw_signal, legend=false, title="signal")
+	
+	transform_plot = scatter(2 .* π .* fftfreq(1000, 1/(2*pi/1000)), real(fft(raw_signal))./maximum(real(fft(raw_signal))), legend=false, title="coeffs")
+	
+	xlims!(0,10)
+
+	plot(signal_plot, transform_plot)
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -151,15 +235,18 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 NumericalIntegration = "e7bfaba1-d571-5449-8927-abc22e82249b"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 FFTW = "~1.4.6"
+FiniteDifferences = "~0.12.24"
 LaTeXStrings = "~1.3.0"
 NLsolve = "~4.5.1"
 NumericalIntegration = "~0.3.3"
@@ -381,6 +468,12 @@ deps = ["ArrayInterfaceCore", "LinearAlgebra", "Requires", "SparseArrays", "Stat
 git-tree-sha1 = "4fc79c0f63ddfdcdc623a8ce36623346a7ce9ae4"
 uuid = "6a86dc24-6348-571c-b903-95158fe2bd41"
 version = "2.12.0"
+
+[[deps.FiniteDifferences]]
+deps = ["ChainRulesCore", "LinearAlgebra", "Printf", "Random", "Richardson", "SparseArrays", "StaticArrays"]
+git-tree-sha1 = "0ee1275eb003b6fc7325cb14301665d1072abda1"
+uuid = "26cc04aa-876d-5657-8c51-4c34ba976000"
+version = "0.12.24"
 
 [[deps.FixedPointNumbers]]
 deps = ["Statistics"]
@@ -896,6 +989,12 @@ git-tree-sha1 = "838a3a4188e2ded87a4f9f184b4b0d78a1e91cb7"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "1.3.0"
 
+[[deps.Richardson]]
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "e03ca566bec93f8a3aeb059c8ef102f268a38949"
+uuid = "708f8203-808e-40c0-ba2d-98a6953ed40d"
+version = "1.4.0"
+
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 
@@ -1261,6 +1360,7 @@ version = "0.9.1+5"
 # ╟─8e6129b5-ab66-47fc-9e95-f665451cf479
 # ╟─32e15fce-da52-46e2-9043-7a95e76a2235
 # ╠═1e9610ba-93e0-4851-b7bf-fd5113642ef9
+# ╟─ef430b76-6a6c-4eae-be91-205349ee39c3
 # ╟─ec01c7dd-fcab-45fe-af3c-2ce0485daaf0
 # ╟─2ac9a275-29b1-4988-869b-19a649058348
 # ╟─1f356bf8-add4-43af-837b-993124182604
@@ -1275,5 +1375,17 @@ version = "0.9.1+5"
 # ╟─0a51dde1-fcf6-4af9-afc0-2fba1c60ee2e
 # ╟─b109ded4-e3fa-448e-a733-260ea5fb08f9
 # ╠═cad0b000-855b-4461-b65b-e26ef98f170a
+# ╟─f1de0c17-15ae-498a-baf1-b054c50802ad
+# ╠═f0c56283-8f07-4af9-a531-c8d2119c5ad4
+# ╟─9991578c-8a75-4640-91d0-9366ea49aded
+# ╟─d2d4fe8b-cca7-44ce-83d4-2ea70904379b
+# ╠═0dce458a-35cc-4337-84b2-0af93fab5aba
+# ╠═ff1c3bb4-3c25-43ac-8440-443fdf3d4eea
+# ╟─2f88f9f2-37e9-4cb4-b783-349d8066fa62
+# ╠═73041a29-621b-471a-8792-52096bf2fbbe
+# ╠═f3a4a788-3167-4241-9067-c0a811a04fa9
+# ╟─024ff730-2413-4093-a81a-42dff90655a1
+# ╠═0341cc3f-0da7-4f85-b1a3-e3b3fadeb39c
+# ╠═658df38f-c230-4e60-97ed-27ce38b443db
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
