@@ -37,10 +37,18 @@ md"### Solve for one profile"
 # ╔═╡ 923aa225-f380-40b1-86d0-96c87f23a9fd
 md"###### define system of equations
 
-define $2N + 2$ equations for the $2N + 1$ unknown fourier coefficents $u_N$ and unknown  speed $c$. but first, we need to define the integrand"
+define $N + 2$ equations for the $N + 1$ unknown fourier coefficents $u_N$ and unknown wave speed $c$. but first, we need to define the set of integrands"
 
 # ╔═╡ 1b6d1531-4bcd-4928-af58-7ce96b174c1c
-function integrands(S, z, c)
+function integrands(N, S, z, B, b, c, ϵ)
+
+	# take derivatives analytically
+
+	# define bessel functions
+
+	# define k values (from 1 to N)
+
+	# define N integrands - one for each k
 
 	
 	
@@ -48,7 +56,7 @@ function integrands(S, z, c)
 end
 
 # ╔═╡ 56c68c83-2c0b-4b57-8212-12f12e75b767
-md"now define $2N + 2$ equations for the $2N + 1$ unknown fourier coefficents $u_N$ and unknown  speed $c$"
+md"now define $N + 2$ equations for the $N + 1$ unknown fourier coefficents $u_N$ and unknown  speed $c$"
 
 # ╔═╡ 9f4c2902-f41b-49fb-b830-762fd4710819
 
@@ -77,7 +85,7 @@ function equations!(equation, unknowns)
 	coeffs = unknowns[2:end]
 
 	# define parameters 
-	N = (length(coeffs) - 1)/2 	# should = 30
+	N = 30 		# number of integral eqns
 	L = π
 	B = 1.5
 	b = 0.1
@@ -90,9 +98,12 @@ function equations!(equation, unknowns)
 	# convert from fourier space to real
 	S = fourierToReal(coeffs, domain)
 
-	# get 
-	
+	# get integrands (N rows with 2N+1 mesh points each)
 
+	# define N equations using eq. (3.4) - one for each k value from 1 to N
+
+	# define two more eqns (fixing coeffs)
+	
 	
 	return equation
 end
