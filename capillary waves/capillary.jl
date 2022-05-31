@@ -21,6 +21,7 @@ begin
 	using NLsolve
 	using PlutoUI
 	using DelimitedFiles
+	TableOfContents()
 end
 
 # ╔═╡ 53b782b0-3b2a-4457-985f-1c58b2a56521
@@ -32,7 +33,7 @@ using FiniteDifferences
 # ╔═╡ a57ad79a-d3d8-11ec-07d9-3d3507b3f121
 md"## Axisymmetric capillary waves 
 
-Capillary waves propagating at aconstant velocity along a cylindrical jet are calculated numerically with a collocation scheme.
+Capillary waves propagating at a constant velocity along a cylindrical jet are calculated numerically with a collocation scheme.
 
 
 Free surface condition:
@@ -300,7 +301,7 @@ begin
 	profile = fourierToReal(fouriercoeffs, domain)
 	
 	plot(domain, profile, legend=false)
-	xlabel!(L"s"); ylabel!(L"F(z)")
+	xlabel!(L"z"); ylabel!(L"F(z)")
 end
 
 # ╔═╡ 50aba242-b248-47f0-a471-860042598dfe
@@ -410,9 +411,9 @@ uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
-git-tree-sha1 = "8a9c02f9d323d4dd8a47245abb106355bf7b45e6"
+git-tree-sha1 = "604426f5f663a59c73e4bacb90bf78450f8a1c2d"
 uuid = "30b0a656-2188-435a-8636-2ec0e6a096e2"
-version = "0.1.2"
+version = "0.1.4"
 
 [[deps.Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -452,9 +453,9 @@ version = "3.18.0"
 
 [[deps.ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
-git-tree-sha1 = "a985dc37e357a3b22b260a5def99f3530fb415d3"
+git-tree-sha1 = "0f4e115f6f34bbe43c19751c90a38b2f380637b9"
 uuid = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
-version = "0.11.2"
+version = "0.11.3"
 
 [[deps.ColorVectorSpace]]
 deps = ["ColorTypes", "FixedPointNumbers", "LinearAlgebra", "SpecialFunctions", "Statistics", "TensorCore"]
@@ -1214,9 +1215,9 @@ version = "1.25.0+0"
 
 [[deps.XML2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Libiconv_jll", "Pkg", "Zlib_jll"]
-git-tree-sha1 = "1acf5bdf07aa0907e0a37d3718bb88d4b687b74a"
+git-tree-sha1 = "58443b63fb7e465a8a7210828c91c08b92132dff"
 uuid = "02c8fc9c-b97f-50b9-bbe4-9be30ff0a78a"
-version = "2.9.12+0"
+version = "2.9.14+0"
 
 [[deps.XSLT_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Libgcrypt_jll", "Libgpg_error_jll", "Libiconv_jll", "Pkg", "XML2_jll", "Zlib_jll"]
@@ -1452,8 +1453,8 @@ version = "0.9.1+5"
 # ╟─e45703ad-63df-4609-be4b-cab05e490efe
 # ╟─44e7c5bd-4fbf-4a43-a226-2b0a94827618
 # ╟─fd33306d-b82b-4054-af5c-fdc128e44e9e
-# ╟─5fd29c42-2f93-430d-8b59-f479a95943ec
-# ╟─ce17061a-3dec-415b-9db9-2aaee391dd88
+# ╠═5fd29c42-2f93-430d-8b59-f479a95943ec
+# ╠═ce17061a-3dec-415b-9db9-2aaee391dd88
 # ╟─ed8db320-6515-400e-857a-0ece8c7d5d90
 # ╟─e926fd00-498c-4691-a124-f7d6d642008b
 # ╠═47731d8f-8a84-4893-b836-aed861ea3231
