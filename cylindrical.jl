@@ -202,6 +202,7 @@ begin
 		plot!(bess_x, bess_I[i,:], label = "α = $(i-1)")
 	end
 	ylabel!(L"I_\alpha (x)")
+	ylims!(0, 3.5)
 end
 
 # ╔═╡ 1e1299c5-55b8-4097-be6c-3e7d85a64b4f
@@ -211,10 +212,8 @@ begin
 		plot!(bess_x, bess_K[i,:], label = "α = $(i-1)")
 	end
 	ylabel!(L"K_\alpha (x)")
+	ylims!(0,3.5)
 end
-
-# ╔═╡ 5efbb4e5-20e2-4b90-bd02-514d6802085d
-plot(bess_x, besselk.(1, bess_x))
 
 # ╔═╡ 0a51dde1-fcf6-4af9-afc0-2fba1c60ee2e
 
@@ -229,7 +228,7 @@ begin
 	plot(deriv_domain, sin.(deriv_domain), label = "sin(x)")
 	plot!(deriv_domain, cos.(deriv_domain), label="cos(x)")
 	scatter!(deriv_domain, fftDerivative(sin.(deriv_domain), deriv_domain, 1), label="approx")
-	ylims!(-1,1)
+	# ylims!(-1,1)
 end
 
 # ╔═╡ f1de0c17-15ae-498a-baf1-b054c50802ad
@@ -1423,9 +1422,9 @@ version = "0.9.1+5"
 # ╠═6ad4bd3a-596d-43e3-9749-b26af940b72b
 # ╟─9f4c2902-f41b-49fb-b830-762fd4710819
 # ╟─3906fb16-3cc8-4409-bfcb-f2c0001d8cee
-# ╠═8e6129b5-ab66-47fc-9e95-f665451cf479
+# ╟─8e6129b5-ab66-47fc-9e95-f665451cf479
 # ╟─32e15fce-da52-46e2-9043-7a95e76a2235
-# ╠═1e9610ba-93e0-4851-b7bf-fd5113642ef9
+# ╟─1e9610ba-93e0-4851-b7bf-fd5113642ef9
 # ╟─ef430b76-6a6c-4eae-be91-205349ee39c3
 # ╟─ec01c7dd-fcab-45fe-af3c-2ce0485daaf0
 # ╟─2ac9a275-29b1-4988-869b-19a649058348
@@ -1437,7 +1436,6 @@ version = "0.9.1+5"
 # ╠═d22d5de4-8b0a-4328-b39d-2b7158a93055
 # ╠═46d03c6d-9702-49e4-9b9e-ea8874ec1ff0
 # ╠═1e1299c5-55b8-4097-be6c-3e7d85a64b4f
-# ╠═5efbb4e5-20e2-4b90-bd02-514d6802085d
 # ╟─0a51dde1-fcf6-4af9-afc0-2fba1c60ee2e
 # ╟─b109ded4-e3fa-448e-a733-260ea5fb08f9
 # ╠═cad0b000-855b-4461-b65b-e26ef98f170a
