@@ -40,23 +40,92 @@ md"###### define system of equations
 define $N + 2$ equations for the $N + 1$ unknown fourier coefficents $u_N$ and unknown wave speed $c$. but first, we need to define the set of integrands"
 
 # ╔═╡ 1b6d1531-4bcd-4928-af58-7ce96b174c1c
-function integrands(N, S, z, B, b, c, ϵ)
+function integrands(coeffs, L, z, B, b, c, ϵ)
 
-	# take derivatives analytically
-
-	# define bessel functions
+	N = length(coeffs) - 1 	# number of integrands
 
 	# define k values (from 1 to N)
+	k = collect(1:N) .* π/L
+
+	# convert from fourier space to real + take analytical derivatives
+	S = 0; Sz = 0; Szz = 0
+	for i = 0:N
+		S = S .+ coeffs[i+1] .* cos.(i*π/L .* z) 
+
+		# take derivatives analytically
+        Sz = Sz .+ coeffs[i+1] * (-1)*(i*π/L) .* sin.(i*2*pi .* z)
+        Szz = Szz .+ coeffs[i+1] * (-1)*(i*π/L)^2 .* cos.(i*2*pi .* z)
+	end
+
+	fullIntegrands = zeros(N, length(z))  # initialize integrands array
 
 	# define N integrands - one for each k
+	for i = 1:N
 
+		# define bessel functions
+		K1kb = besselk(1, k[i]*b)
+		I1kS = besseli.(1, k[i].*S)
+		I1kb = besseli(1, k[i]*b)
+		K1kS = besselk.(1, k[i].*S)
+
+		# integrand terms
+		one = k[i] .* S
+
+		two1 = (1 .+ Sz.^2)
+		two2 = (c^2)/2 .- (1 ./ (S .* sqrt.(1 .+ Sz.^2))) .+ (Szz ./ (1 .+ Sz.^2).^(3/2)) .+ (B ./ (2 .* S.^2)) .+ ϵ
+		two = sqrt.(two1 .* two2)
+		
+		three = (K1kb .* I1kS) .- (I1kb .* K1kS)
+		four = cos.(k[i] .* z)
+			
+		# define current integrand
+		fullIntegrands[i,:] = one .* two .* three .* four
+	end
 	
-	
-	return fullIntegrand
+	return fullIntegrands
 end
 
 # ╔═╡ 56c68c83-2c0b-4b57-8212-12f12e75b767
 md"now define $N + 2$ equations for the $N + 1$ unknown fourier coefficents $u_N$ and unknown  speed $c$"
+
+# ╔═╡ 6ad4bd3a-596d-43e3-9749-b26af940b72b
+function equations!(equation, unknowns)
+
+	c = unknowns[1]
+	coeffs = unknowns[2:end]
+
+	# define parameters 
+	N = length(coeffs) - 1 	# number of integral eqns
+	L = π
+	B = 1.5
+	b = 0.1
+	ϵ = 1 - B/2
+
+	# define domain
+	h = 2*L/(2*N + 1)
+	z = collect(-L:h:L-h) 	# [-L, L-h] with (2N + 1) points
+
+	# get integrands (N rows with 2N+1 mesh points each)
+
+	# define N equations using eq. (3.4) - one for each k value from 1 to N
+
+	# define two more eqns (fixing coeffs)
+	
+	
+	return equation
+end
+
+# ╔═╡ 29889bee-fb71-4ae1-96b6-f56e2944caa7
+begin
+	N = 30
+	initial_guess = zeros(N+2)
+	initial_guess[1:4] = [1.079, 1, 0, 0.001]
+end
+
+# ╔═╡ 6418e893-9a8a-4ac8-b916-492c7edd3f7c
+begin
+	integrands(initial_guess, pi, collect(-pi:0.001:pi-0.001), 1.5, 0.1, 1.079, 1-1.5/2)
+end
 
 # ╔═╡ 9f4c2902-f41b-49fb-b830-762fd4710819
 
@@ -76,36 +145,6 @@ function fourierToReal(coeffs, domain)
 	end
 
 	return profile
-end
-
-# ╔═╡ 6ad4bd3a-596d-43e3-9749-b26af940b72b
-function equations!(equation, unknowns)
-
-	c = unknowns[1]
-	coeffs = unknowns[2:end]
-
-	# define parameters 
-	N = 30 		# number of integral eqns
-	L = π
-	B = 1.5
-	b = 0.1
-	ϵ = 1 - B/2
-
-	# define domain
-	h = 2*L/(2*N + 1)
-	z = collect(-L:h:L-h) 	# [-L, L-h] with (2N + 1) points
-
-	# convert from fourier space to real
-	S = fourierToReal(coeffs, domain)
-
-	# get integrands (N rows with 2N+1 mesh points each)
-
-	# define N equations using eq. (3.4) - one for each k value from 1 to N
-
-	# define two more eqns (fixing coeffs)
-	
-	
-	return equation
 end
 
 # ╔═╡ 32e15fce-da52-46e2-9043-7a95e76a2235
@@ -1431,9 +1470,11 @@ version = "0.9.1+5"
 # ╠═1b6d1531-4bcd-4928-af58-7ce96b174c1c
 # ╟─56c68c83-2c0b-4b57-8212-12f12e75b767
 # ╠═6ad4bd3a-596d-43e3-9749-b26af940b72b
+# ╠═29889bee-fb71-4ae1-96b6-f56e2944caa7
+# ╠═6418e893-9a8a-4ac8-b916-492c7edd3f7c
 # ╟─9f4c2902-f41b-49fb-b830-762fd4710819
 # ╟─3906fb16-3cc8-4409-bfcb-f2c0001d8cee
-# ╟─8e6129b5-ab66-47fc-9e95-f665451cf479
+# ╠═8e6129b5-ab66-47fc-9e95-f665451cf479
 # ╟─32e15fce-da52-46e2-9043-7a95e76a2235
 # ╟─1e9610ba-93e0-4851-b7bf-fd5113642ef9
 # ╟─ef430b76-6a6c-4eae-be91-205349ee39c3
