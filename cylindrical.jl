@@ -62,7 +62,7 @@ function integrands(coeffs, L, z, B, b, c, ϵ)
 	# define N integrands - one for each k
 	for i = 1:N
 
-		# define bessel functions
+		# define bessel functions (NOTE some may be negative due to S)
 		K1kb = besselk(1, k[i]*b)
 		I1kS = besseli.(1, k[i].*S)
 		I1kb = besseli(1, k[i]*b)
@@ -88,11 +88,18 @@ end
 # ╔═╡ 56c68c83-2c0b-4b57-8212-12f12e75b767
 md"now define $N + 2$ equations for the $N + 1$ unknown fourier coefficents $u_N$ and unknown  speed $c$"
 
+# ╔═╡ 29889bee-fb71-4ae1-96b6-f56e2944caa7
+begin
+	N = 30
+	initial_guess = zeros(N+2)
+	initial_guess[1:4] = [1.079, 1, 0, 0.001]
+end
+
 # ╔═╡ 6ad4bd3a-596d-43e3-9749-b26af940b72b
 function equations!(equation, unknowns)
 
 	c = unknowns[1]
-	coeffs = unknowns[2:end]
+	coeffs = unknowns[2:N+2]
 
 	# define parameters 
 	N = length(coeffs) - 1 	# number of integral eqns
@@ -106,20 +113,19 @@ function equations!(equation, unknowns)
 	z = collect(-L:h:L-h) 	# [-L, L-h] with (2N + 1) points
 
 	# get integrands (N rows with 2N+1 mesh points each)
+	integrand = integrands(coeffs, L, z, B, b, c, ϵ)
 
 	# define N equations using eq. (3.4) - one for each k value from 1 to N
+	for i = 1:N
+		equation[i] = integrate(z, integrand[i,:], Trapezoidal())
+	end
 
-	# define two more eqns (fixing coeffs)
-	
-	
+	# define two more eqns to fixing coeffs (N+2 total now)
+	α = 0.1
+	equation[N+1] = abs(coeffs[0+1] - 1)
+	equation[N+2] = abs(coeffs[2+1] - α)
+		
 	return equation
-end
-
-# ╔═╡ 29889bee-fb71-4ae1-96b6-f56e2944caa7
-begin
-	N = 30
-	initial_guess = zeros(N+2)
-	initial_guess[1:4] = [1.079, 1, 0, 0.001]
 end
 
 # ╔═╡ 6418e893-9a8a-4ac8-b916-492c7edd3f7c
