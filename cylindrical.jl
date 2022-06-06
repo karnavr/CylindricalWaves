@@ -77,9 +77,12 @@ function integrands(coeffs, L, z, B, b, c, ϵ)
 		
 		three = (K1kb .* I1kS) .- (I1kb .* K1kS)
 		four = cos.(k[i] .* z)
+
+		# scale integrand by max value
+		max_value = maximum(one .* two .* three .* four)
 			
 		# define current integrand
-		fullIntegrands[i,:] = one .* two .* three .* four
+		fullIntegrands[i,:] = (one .* two .* three .* four) ./ max_value
 	end
 	
 	return fullIntegrands
@@ -88,18 +91,11 @@ end
 # ╔═╡ 56c68c83-2c0b-4b57-8212-12f12e75b767
 md"now define $N + 2$ equations for the $N + 1$ unknown fourier coefficents $u_N$ and unknown  speed $c$"
 
-# ╔═╡ 29889bee-fb71-4ae1-96b6-f56e2944caa7
-begin
-	N = 30
-	initial_guess = zeros(N+2)
-	initial_guess[1:4] = [1.079, 1, 0, 0.001]
-end
-
 # ╔═╡ 6ad4bd3a-596d-43e3-9749-b26af940b72b
 function equations!(equation, unknowns)
 
 	c = unknowns[1]
-	coeffs = unknowns[2:N+2]
+	coeffs = unknowns[2:end] # N + 1 coeffs
 
 	# define parameters 
 	N = length(coeffs) - 1 	# number of integral eqns
@@ -121,12 +117,33 @@ function equations!(equation, unknowns)
 	end
 
 	# define two more eqns to fixing coeffs (N+2 total now)
-	α = 0.1
+	α = 0.1 # will eventually set this outside function for bifurcation
 	equation[N+1] = abs(coeffs[0+1] - 1)
 	equation[N+2] = abs(coeffs[2+1] - α)
 		
 	return equation
 end
+
+# ╔═╡ 1a8e8744-e2ce-4d52-bb7e-979f7970209f
+md"create an initial guess:
+
+$$[c, a_0, a_1, a_2, \cdots] = [1.079, 1.0, 0.0, 0.1, \cdots]$$"
+
+# ╔═╡ 29889bee-fb71-4ae1-96b6-f56e2944caa7
+begin
+	N = 30
+	initial_guess = zeros(N+2)
+	initial_guess[1:4] = [1.079, 1.0, 0.01, 0.1]
+end
+
+# ╔═╡ f2bd90dc-ef53-48f7-9ba0-005171f141c1
+md"use `NLsolve` to solve our system"
+
+# ╔═╡ 34f0a96e-d7be-48eb-8ab3-fc8c8f899785
+sol = nlsolve(equations!, initial_guess, iterations=100)
+
+# ╔═╡ b312fdb7-1c9d-484b-812a-e12a2e4b102e
+md"#### Plot the wave profile"
 
 # ╔═╡ 6418e893-9a8a-4ac8-b916-492c7edd3f7c
 begin
@@ -147,10 +164,25 @@ function fourierToReal(coeffs, domain)
 	profile = 0 		# initialize profile
 	
 	for i = 0:(N-1)
-		profile = profile .+ coeffs[i+1] .* cos.(i*2*π .* domain) 
+		profile = profile .+ coeffs[i+1] .* cos.(i .* domain) 
 	end
 
 	return profile
+end
+
+# ╔═╡ 04f40ee7-db86-483f-8ebd-ae36bfb4e8b2
+begin
+	solution = sol.zero
+	c_sol = solution[1]
+	fouriercoeffs = solution[2:end]
+	domain = collect(range(-π,π,2*N+1))
+
+	profile = fourierToReal(fouriercoeffs, domain)
+	
+	plot(domain, profile, label="solution")
+	plot!(domain, fourierToReal(initial_guess[2:end], domain), label="initial guess", linestyle=:dot, lw=3)
+	xlabel!(L"z"); ylabel!(L"S(z)")
+	# ylims!(0.6,1.2)
 end
 
 # ╔═╡ 32e15fce-da52-46e2-9043-7a95e76a2235
@@ -1476,12 +1508,17 @@ version = "0.9.1+5"
 # ╠═1b6d1531-4bcd-4928-af58-7ce96b174c1c
 # ╟─56c68c83-2c0b-4b57-8212-12f12e75b767
 # ╠═6ad4bd3a-596d-43e3-9749-b26af940b72b
+# ╟─1a8e8744-e2ce-4d52-bb7e-979f7970209f
 # ╠═29889bee-fb71-4ae1-96b6-f56e2944caa7
+# ╟─f2bd90dc-ef53-48f7-9ba0-005171f141c1
+# ╠═34f0a96e-d7be-48eb-8ab3-fc8c8f899785
+# ╟─b312fdb7-1c9d-484b-812a-e12a2e4b102e
+# ╠═04f40ee7-db86-483f-8ebd-ae36bfb4e8b2
 # ╠═6418e893-9a8a-4ac8-b916-492c7edd3f7c
 # ╟─9f4c2902-f41b-49fb-b830-762fd4710819
 # ╟─3906fb16-3cc8-4409-bfcb-f2c0001d8cee
-# ╠═8e6129b5-ab66-47fc-9e95-f665451cf479
-# ╟─32e15fce-da52-46e2-9043-7a95e76a2235
+# ╟─8e6129b5-ab66-47fc-9e95-f665451cf479
+# ╠═32e15fce-da52-46e2-9043-7a95e76a2235
 # ╟─1e9610ba-93e0-4851-b7bf-fd5113642ef9
 # ╟─ef430b76-6a6c-4eae-be91-205349ee39c3
 # ╟─ec01c7dd-fcab-45fe-af3c-2ce0485daaf0
