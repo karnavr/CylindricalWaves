@@ -4,6 +4,16 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
+
 # ╔═╡ e700ec68-a85d-46af-af09-8ad680adf08d
 begin
 	using Plots
@@ -132,8 +142,8 @@ $$[c, a_0, a_1, a_2, \cdots] = [1.079, 1.0, 0.0, 0.1, \cdots]$$"
 # ╔═╡ 29889bee-fb71-4ae1-96b6-f56e2944caa7
 begin
 	N = 30
-	initial_guess = zeros(N+2)
-	initial_guess[1:4] = [1.079, 1.0, 0.01, 0.1]
+	initial_guess = (1e-10).*ones(N+2)
+	initial_guess[1:4] = [1.079, 1.0, 0.01, 0.01]
 end
 
 # ╔═╡ f2bd90dc-ef53-48f7-9ba0-005171f141c1
@@ -149,6 +159,12 @@ md"#### Plot the wave profile"
 begin
 	integrands(initial_guess, pi, collect(-pi:0.001:pi-0.001), 1.5, 0.1, 1.079, 1-1.5/2)
 end
+
+# ╔═╡ 1e692245-7cd4-4ab1-be49-2009ab7c07a6
+
+
+# ╔═╡ 0d05379d-b43d-4d5a-9687-b1ed2bdfb690
+md"### Visualizing `MATLAB` results"
 
 # ╔═╡ 9f4c2902-f41b-49fb-b830-762fd4710819
 
@@ -183,6 +199,60 @@ begin
 	plot!(domain, fourierToReal(initial_guess[2:end], domain), label="initial guess", linestyle=:dot, lw=3)
 	xlabel!(L"z"); ylabel!(L"S(z)")
 	# ylims!(0.6,1.2)
+end
+
+# ╔═╡ 51005bec-83cc-495e-b265-6286898aec3b
+begin
+	four = [0, 1, 0]
+	madomain = collect(range(-pi,pi,100))
+	plot(madomain, fourierToReal(four, madomain))
+end
+
+# ╔═╡ f3e94136-a877-4062-b702-2a108d61814b
+begin
+	# import results as array
+	msolutions = readdlm("matlab/matlab_solutions.csv", ',', Float64)
+
+	mcoeffs = msolutions[:,2:end]
+	mspeeds = msolutions[:,1]
+
+	nsols = length(msolutions[:,1])
+
+	# convert profiles + extract speeds
+	mdomain = collect(range(-pi,pi,500))
+	mprofiles = zeros(nsols,length(mdomain))
+
+	for i = 1:nsols
+		mprofiles[i,:] = fourierToReal(mcoeffs[i,:], mdomain)
+	end
+
+	# reflect profiles 
+	mprofiles = [mprofiles[:,Int(end/2):end] mprofiles[:,1:Int(end/2)-1]]
+
+end
+
+# ╔═╡ 5c754789-3740-476f-b847-b0133242ff50
+@bind mprofileindex PlutoUI.Slider(1:nsols, default=1)
+
+# ╔═╡ 89fcaa46-fd8f-4148-8ed7-a9f93dee313c
+begin
+	# plot profiles 
+	profile_plot = plot(mdomain, mprofiles[mprofileindex,:], legend=false, title = "a1 = $(round(mcoeffs[mprofileindex,2], digits=3))", lw=2)
+	# ylims!(0.7,1.2)
+
+	# plot coeffs 
+	first_coeff = 0
+	coeff_plot = scatter(abs.(mcoeffs[mprofileindex,first_coeff+1:end]), legend=false, title="k = $(mprofileindex)", xticks = :all, yaxis=:log)
+	xlabel!("a$(first_coeff) to a$(length(mcoeffs[1,:])-1)")
+
+	plot(profile_plot, coeff_plot)
+end
+
+# ╔═╡ c4473b1e-0f95-41d8-9fb2-0b9e3292830b
+begin
+	scatter(mspeeds, mcoeffs[:,2], legend = false, markersize=4)
+	annotate!(0.10,4.3,("branch points = $(nsols)", 10))
+	xlabel!(L"c"); ylabel!(L"a_1")
 end
 
 # ╔═╡ 32e15fce-da52-46e2-9043-7a95e76a2235
@@ -1515,9 +1585,16 @@ version = "0.9.1+5"
 # ╟─b312fdb7-1c9d-484b-812a-e12a2e4b102e
 # ╠═04f40ee7-db86-483f-8ebd-ae36bfb4e8b2
 # ╠═6418e893-9a8a-4ac8-b916-492c7edd3f7c
+# ╠═51005bec-83cc-495e-b265-6286898aec3b
+# ╟─1e692245-7cd4-4ab1-be49-2009ab7c07a6
+# ╟─0d05379d-b43d-4d5a-9687-b1ed2bdfb690
+# ╠═f3e94136-a877-4062-b702-2a108d61814b
+# ╟─5c754789-3740-476f-b847-b0133242ff50
+# ╠═89fcaa46-fd8f-4148-8ed7-a9f93dee313c
+# ╠═c4473b1e-0f95-41d8-9fb2-0b9e3292830b
 # ╟─9f4c2902-f41b-49fb-b830-762fd4710819
 # ╟─3906fb16-3cc8-4409-bfcb-f2c0001d8cee
-# ╟─8e6129b5-ab66-47fc-9e95-f665451cf479
+# ╠═8e6129b5-ab66-47fc-9e95-f665451cf479
 # ╠═32e15fce-da52-46e2-9043-7a95e76a2235
 # ╟─1e9610ba-93e0-4851-b7bf-fd5113642ef9
 # ╟─ef430b76-6a6c-4eae-be91-205349ee39c3
