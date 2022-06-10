@@ -76,7 +76,7 @@ md"solve the system for B = 1.25 (using the Runge-Kutta method)"
 # ╔═╡ 556915df-1121-4fad-8930-5f20acf82279
 begin
 	# set initial condition + domain
-	y0 = [1.0;+0.0001]
+	y0 = [1.0;+0.000001]
 	xspan = (0.0, 50.0)
 
 	# define problem + solve
@@ -95,8 +95,9 @@ md"solve for B = 30"
 # ╔═╡ deebef93-4daa-411d-ba26-625863611760
 begin
 	# set initial condition + domain
-	y_initial = [1.0;-0.0001]
+	y_initial = [1.0-1e-5;-0.0001]
 	x = (2.5, 5.5)
+	# x,y,α = 0, 1+(small), sqrt(B-1)
 
 	# define problem + solve
 	problem2 = ODEProblem(system!, y_initial, x, 30)
