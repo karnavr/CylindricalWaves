@@ -155,11 +155,6 @@ sol = nlsolve(equations!, initial_guess, iterations=100)
 # ╔═╡ b312fdb7-1c9d-484b-812a-e12a2e4b102e
 md"#### Plot the wave profile"
 
-# ╔═╡ 6418e893-9a8a-4ac8-b916-492c7edd3f7c
-begin
-	integrands(initial_guess, pi, collect(-pi:0.001:pi-0.001), 1.5, 0.1, 1.079, 1-1.5/2)
-end
-
 # ╔═╡ 1e692245-7cd4-4ab1-be49-2009ab7c07a6
 
 
@@ -201,13 +196,6 @@ begin
 	# ylims!(0.6,1.2)
 end
 
-# ╔═╡ 51005bec-83cc-495e-b265-6286898aec3b
-begin
-	four = [0, 1, 0]
-	madomain = collect(range(-pi,pi,100))
-	plot(madomain, fourierToReal(four, madomain))
-end
-
 # ╔═╡ f3e94136-a877-4062-b702-2a108d61814b
 begin
 	# import results as array
@@ -238,7 +226,7 @@ end
 begin
 	# plot profiles 
 	profile_plot = plot(mdomain, mprofiles[mprofileindex,:], legend=false, title = "a1 = $(round(mcoeffs[mprofileindex,2], digits=3))", lw=2)
-	# ylims!(0.7,1.2)
+	# ylims!(0.5,1.3)
 
 	# plot coeffs 
 	first_coeff = 0
@@ -470,7 +458,7 @@ NLsolve = "~4.5.1"
 NumericalIntegration = "~0.3.3"
 Plots = "~1.29.0"
 PlutoUI = "~0.7.39"
-SpecialFunctions = "~2.1.5"
+SpecialFunctions = "~2.1.6"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -503,9 +491,9 @@ uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
-git-tree-sha1 = "8cf9950ecb894a76d5908e0633c9272784d52f95"
+git-tree-sha1 = "d0f59ebfe8d3ea2799fb3fb88742d69978e5843e"
 uuid = "30b0a656-2188-435a-8636-2ec0e6a096e2"
-version = "0.1.3"
+version = "0.1.10"
 
 [[deps.Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -683,9 +671,9 @@ version = "3.3.10+0"
 
 [[deps.FiniteDiff]]
 deps = ["ArrayInterfaceCore", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "4fc79c0f63ddfdcdc623a8ce36623346a7ce9ae4"
+git-tree-sha1 = "a0700c21266b55bf62c22e75af5668aa7841b500"
 uuid = "6a86dc24-6348-571c-b903-95158fe2bd41"
-version = "2.12.0"
+version = "2.12.1"
 
 [[deps.FiniteDifferences]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Printf", "Random", "Richardson", "SparseArrays", "StaticArrays"]
@@ -956,9 +944,9 @@ version = "2.35.0+0"
 
 [[deps.Libtiff_jll]]
 deps = ["Artifacts", "JLLWrappers", "JpegTurbo_jll", "LERC_jll", "Libdl", "Pkg", "Zlib_jll", "Zstd_jll"]
-git-tree-sha1 = "c9551dd26e31ab17b86cbd00c2ede019c08758eb"
+git-tree-sha1 = "3eb79b0ca5764d4799c06699573fd8f533259713"
 uuid = "89763e89-9b03-5906-acba-b20f662cd828"
-version = "4.3.0+1"
+version = "4.4.0+0"
 
 [[deps.Libuuid_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1056,9 +1044,9 @@ version = "0.3.3"
 
 [[deps.OffsetArrays]]
 deps = ["Adapt"]
-git-tree-sha1 = "9cf6b82f7f337c01eac9995be43d11483dee5d7b"
+git-tree-sha1 = "d623bd9462972ca53c95bd3e6d94a002968faaa7"
 uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
-version = "1.12.0"
+version = "1.12.2"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1250,15 +1238,15 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[deps.SpecialFunctions]]
 deps = ["ChainRulesCore", "IrrationalConstants", "LogExpFunctions", "OpenLibm_jll", "OpenSpecFun_jll"]
-git-tree-sha1 = "bc40f042cfcc56230f781d92db71f0e21496dffd"
+git-tree-sha1 = "a9e798cae4867e3a41cae2dd9eb60c047f1212db"
 uuid = "276daf66-3868-5448-9aa4-cd146d93841b"
-version = "2.1.5"
+version = "2.1.6"
 
 [[deps.StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "cd56bf18ed715e8b09f06ef8c6b781e6cdc49911"
+git-tree-sha1 = "8e981101b5c246b8325dbb3b294b0c67b9c69a0a"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.4.4"
+version = "1.4.5"
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
@@ -1369,9 +1357,9 @@ version = "0.5.5"
 
 [[deps.XML2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Libiconv_jll", "Pkg", "Zlib_jll"]
-git-tree-sha1 = "1acf5bdf07aa0907e0a37d3718bb88d4b687b74a"
+git-tree-sha1 = "58443b63fb7e465a8a7210828c91c08b92132dff"
 uuid = "02c8fc9c-b97f-50b9-bbe4-9be30ff0a78a"
-version = "2.9.12+0"
+version = "2.9.14+0"
 
 [[deps.XSLT_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Libgcrypt_jll", "Libgpg_error_jll", "Libiconv_jll", "Pkg", "XML2_jll", "Zlib_jll"]
@@ -1584,8 +1572,6 @@ version = "0.9.1+5"
 # ╠═34f0a96e-d7be-48eb-8ab3-fc8c8f899785
 # ╟─b312fdb7-1c9d-484b-812a-e12a2e4b102e
 # ╠═04f40ee7-db86-483f-8ebd-ae36bfb4e8b2
-# ╠═6418e893-9a8a-4ac8-b916-492c7edd3f7c
-# ╠═51005bec-83cc-495e-b265-6286898aec3b
 # ╟─1e692245-7cd4-4ab1-be49-2009ab7c07a6
 # ╟─0d05379d-b43d-4d5a-9687-b1ed2bdfb690
 # ╠═f3e94136-a877-4062-b702-2a108d61814b
