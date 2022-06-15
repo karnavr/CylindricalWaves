@@ -165,7 +165,7 @@ md"### Visualizing `MATLAB` results"
 
 
 # ╔═╡ ed7afa3a-660b-4f72-9f96-c04ca84dcb5e
-md"### Visualizing periodic results"
+md"### Periodic waves"
 
 # ╔═╡ 859aaaf3-cf41-4589-8b55-535801eb2d11
 begin
@@ -190,12 +190,44 @@ begin
 	    end
 	end
 
-	pprofiles
-
 end
 
 # ╔═╡ 54bac914-27b7-4471-82ae-681a7dbc2dc0
 @bind pprofileindex PlutoUI.Slider(1:npsols, default=1)
+
+# ╔═╡ ec01063f-6b67-43cf-a09f-373f1fab2a0d
+
+
+# ╔═╡ 0d58bc07-ccde-486b-b3ce-296656e7296b
+md"### Wilton ripples"
+
+# ╔═╡ 0d003a4c-8686-4305-9f1b-5e66564c7c9b
+begin
+	# import results as array
+	wsolutions = readdlm("matlab/wilton_solutions.csv", ',', Float64)
+
+	wcoeffs = wsolutions[:,2:end]
+	wspeeds = wsolutions[:,1]
+
+	nwsols = length(wsolutions[:,1])
+
+	# convert profiles + extract speeds
+	wdomain = collect(range(-2.061/2,2.061/2,500))
+	wprofiles = zeros(nwsols,length(wdomain))
+
+	for i = 1:nwsols
+		for n = 0:N
+        
+	        k = n*pi/(2.061/2);
+	        
+	        wprofiles[i,:] = wprofiles[i,:] + wcoeffs[i, n+1] .* cos.(k.*wdomain);
+	    end
+	end
+
+end
+
+# ╔═╡ f7022908-59c1-44db-8f00-ee4daec315ba
+@bind wprofileindex PlutoUI.Slider(1:nwsols, default=1)
 
 # ╔═╡ 9f4c2902-f41b-49fb-b830-762fd4710819
 
@@ -284,6 +316,20 @@ begin
 	# xlabel!("a$(first_coeff) to a$(length(mcoeffs[1,:])-1)")
 
 	plot(periodic_plot, pcoeff_plot)
+end
+
+# ╔═╡ 2fc91b3d-f009-47d3-ad8a-6864645a6515
+begin
+	# plot profiles 
+	wilton_plot = plot(wdomain, wprofiles[wprofileindex,:], legend=false, title = "a1 = $(round(wcoeffs[wprofileindex,2], digits=3))", lw=2)
+	# ylims!(0.5,1.3)
+
+	# plot coeffs 
+	# first_coeff = 0
+	wcoeff_plot = scatter(abs.(wcoeffs[wprofileindex,first_coeff+1:end]), legend=false, title="n = $(wprofileindex)", xticks = :all, yaxis=:log)
+	# xlabel!("a$(first_coeff) to a$(length(mcoeffs[1,:])-1)")
+
+	plot(wilton_plot, wcoeff_plot)
 end
 
 # ╔═╡ c4473b1e-0f95-41d8-9fb2-0b9e3292830b
@@ -1633,6 +1679,11 @@ version = "0.9.1+5"
 # ╠═859aaaf3-cf41-4589-8b55-535801eb2d11
 # ╟─54bac914-27b7-4471-82ae-681a7dbc2dc0
 # ╠═f621fe78-6fd6-45f7-9aa7-2d379b7a1e8f
+# ╟─ec01063f-6b67-43cf-a09f-373f1fab2a0d
+# ╟─0d58bc07-ccde-486b-b3ce-296656e7296b
+# ╠═0d003a4c-8686-4305-9f1b-5e66564c7c9b
+# ╟─f7022908-59c1-44db-8f00-ee4daec315ba
+# ╠═2fc91b3d-f009-47d3-ad8a-6864645a6515
 # ╟─9f4c2902-f41b-49fb-b830-762fd4710819
 # ╟─3906fb16-3cc8-4409-bfcb-f2c0001d8cee
 # ╠═8e6129b5-ab66-47fc-9e95-f665451cf479
