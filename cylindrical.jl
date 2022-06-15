@@ -195,6 +195,13 @@ end
 # ╔═╡ 54bac914-27b7-4471-82ae-681a7dbc2dc0
 @bind pprofileindex PlutoUI.Slider(1:npsols, default=1)
 
+# ╔═╡ 1f7cf50c-075b-4c9d-a66f-b1d235f1c1c1
+begin
+	scatter(pspeeds, pcoeffs[:,2], legend = false, markersize=4)
+	annotate!(0.10,4.3,("branch points = $(npsols)", 10))
+	xlabel!(L"c"); ylabel!(L"a_1")
+end
+
 # ╔═╡ ec01063f-6b67-43cf-a09f-373f1fab2a0d
 
 
@@ -228,6 +235,13 @@ end
 
 # ╔═╡ f7022908-59c1-44db-8f00-ee4daec315ba
 @bind wprofileindex PlutoUI.Slider(1:nwsols, default=1)
+
+# ╔═╡ c7c0ff63-4677-4d89-980f-e2ca0808a13d
+begin
+	scatter(wspeeds, wcoeffs[:,2], legend = false, markersize=4)
+	annotate!(0.10,4.3,("branch points = $(nwsols)", 10))
+	xlabel!(L"c"); ylabel!(L"a_1")
+end
 
 # ╔═╡ 9f4c2902-f41b-49fb-b830-762fd4710819
 
@@ -308,7 +322,7 @@ end
 begin
 	# plot profiles 
 	periodic_plot = plot(pdomain, pprofiles[pprofileindex,:], legend=false, title = "a1 = $(round(pcoeffs[pprofileindex,2], digits=3))", lw=2)
-	# ylims!(0.5,1.3)
+	ylims!(0.925,1.09)
 
 	# plot coeffs 
 	# first_coeff = 0
@@ -322,10 +336,9 @@ end
 begin
 	# plot profiles 
 	wilton_plot = plot(wdomain, wprofiles[wprofileindex,:], legend=false, title = "a1 = $(round(wcoeffs[wprofileindex,2], digits=3))", lw=2)
-	# ylims!(0.5,1.3)
+	ylims!(0.96,1.050)
 
 	# plot coeffs 
-	# first_coeff = 0
 	wcoeff_plot = scatter(abs.(wcoeffs[wprofileindex,first_coeff+1:end]), legend=false, title="n = $(wprofileindex)", xticks = :all, yaxis=:log)
 	# xlabel!("a$(first_coeff) to a$(length(mcoeffs[1,:])-1)")
 
@@ -1679,11 +1692,13 @@ version = "0.9.1+5"
 # ╠═859aaaf3-cf41-4589-8b55-535801eb2d11
 # ╟─54bac914-27b7-4471-82ae-681a7dbc2dc0
 # ╠═f621fe78-6fd6-45f7-9aa7-2d379b7a1e8f
+# ╠═1f7cf50c-075b-4c9d-a66f-b1d235f1c1c1
 # ╟─ec01063f-6b67-43cf-a09f-373f1fab2a0d
 # ╟─0d58bc07-ccde-486b-b3ce-296656e7296b
 # ╠═0d003a4c-8686-4305-9f1b-5e66564c7c9b
 # ╟─f7022908-59c1-44db-8f00-ee4daec315ba
 # ╠═2fc91b3d-f009-47d3-ad8a-6864645a6515
+# ╠═c7c0ff63-4677-4d89-980f-e2ca0808a13d
 # ╟─9f4c2902-f41b-49fb-b830-762fd4710819
 # ╟─3906fb16-3cc8-4409-bfcb-f2c0001d8cee
 # ╠═8e6129b5-ab66-47fc-9e95-f665451cf479
