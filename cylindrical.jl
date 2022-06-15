@@ -161,6 +161,42 @@ md"#### Plot the wave profile"
 # ╔═╡ 0d05379d-b43d-4d5a-9687-b1ed2bdfb690
 md"### Visualizing `MATLAB` results"
 
+# ╔═╡ 6bd25f23-2758-4ec2-88bd-570ce8d6de05
+
+
+# ╔═╡ ed7afa3a-660b-4f72-9f96-c04ca84dcb5e
+md"### Visualizing periodic results"
+
+# ╔═╡ 859aaaf3-cf41-4589-8b55-535801eb2d11
+begin
+	# import results as array
+	psolutions = readdlm("matlab/periodic_solutions.csv", ',', Float64)
+
+	pcoeffs = psolutions[:,2:end]
+	pspeeds = psolutions[:,1]
+
+	npsols = length(psolutions[:,1])
+
+	# convert profiles + extract speeds
+	pdomain = collect(range(-pi/2,pi/2,500))
+	pprofiles = zeros(npsols,length(pdomain))
+
+	for i = 1:npsols
+		for n = 0:N
+        
+	        k = n*pi/(pi/2);
+	        
+	        pprofiles[i,:] = pprofiles[i,:] + pcoeffs[i, n+1] .* cos.(k.*pdomain);
+	    end
+	end
+
+	pprofiles
+
+end
+
+# ╔═╡ 54bac914-27b7-4471-82ae-681a7dbc2dc0
+@bind pprofileindex PlutoUI.Slider(1:npsols, default=1)
+
 # ╔═╡ 9f4c2902-f41b-49fb-b830-762fd4710819
 
 
@@ -234,6 +270,20 @@ begin
 	xlabel!("a$(first_coeff) to a$(length(mcoeffs[1,:])-1)")
 
 	plot(profile_plot, coeff_plot)
+end
+
+# ╔═╡ f621fe78-6fd6-45f7-9aa7-2d379b7a1e8f
+begin
+	# plot profiles 
+	periodic_plot = plot(pdomain, pprofiles[pprofileindex,:], legend=false, title = "a1 = $(round(pcoeffs[pprofileindex,2], digits=3))", lw=2)
+	# ylims!(0.5,1.3)
+
+	# plot coeffs 
+	# first_coeff = 0
+	pcoeff_plot = scatter(abs.(pcoeffs[pprofileindex,first_coeff+1:end]), legend=false, title="n = $(pprofileindex)", xticks = :all, yaxis=:log)
+	# xlabel!("a$(first_coeff) to a$(length(mcoeffs[1,:])-1)")
+
+	plot(periodic_plot, pcoeff_plot)
 end
 
 # ╔═╡ c4473b1e-0f95-41d8-9fb2-0b9e3292830b
@@ -1578,6 +1628,11 @@ version = "0.9.1+5"
 # ╟─5c754789-3740-476f-b847-b0133242ff50
 # ╠═89fcaa46-fd8f-4148-8ed7-a9f93dee313c
 # ╠═c4473b1e-0f95-41d8-9fb2-0b9e3292830b
+# ╟─6bd25f23-2758-4ec2-88bd-570ce8d6de05
+# ╟─ed7afa3a-660b-4f72-9f96-c04ca84dcb5e
+# ╠═859aaaf3-cf41-4589-8b55-535801eb2d11
+# ╟─54bac914-27b7-4471-82ae-681a7dbc2dc0
+# ╠═f621fe78-6fd6-45f7-9aa7-2d379b7a1e8f
 # ╟─9f4c2902-f41b-49fb-b830-762fd4710819
 # ╟─3906fb16-3cc8-4409-bfcb-f2c0001d8cee
 # ╠═8e6129b5-ab66-47fc-9e95-f665451cf479
