@@ -89,10 +89,10 @@ function integrands(coeffs, L, z, B, b, c, ϵ)
 		four = cos.(k[i] .* z)
 
 		# scale integrand by max value
-		max_value = maximum(one .* two .* three .* four)
+		max_value = max.(one .* two .* three .* four)
 			
 		# define current integrand
-		fullIntegrands[i,:] = (one .* two .* three .* four) ./ max_value
+		fullIntegrands[i,:] = (one .* two .* three) ./ max_value .* four
 	end
 	
 	return fullIntegrands
@@ -123,13 +123,13 @@ function equations!(equation, unknowns)
 
 	# define N equations using eq. (3.4) - one for each k value from 1 to N
 	for i = 1:N
-		equation[i] = integrate(z, integrand[i,:], Trapezoidal())
+		equation[i] = real(integrate(z, integrand[i,:]))
 	end
 
 	# define two more eqns to fixing coeffs (N+2 total now)
-	α = 0.1 # will eventually set this outside function for bifurcation
+	α = 0.16 # will eventually set this outside function for bifurcation
 	equation[N+1] = abs(coeffs[0+1] - 1)
-	equation[N+2] = abs(coeffs[2+1] - α)
+	equation[N+2] = abs(coeffs[1+1] - α)
 		
 	return equation
 end
@@ -143,14 +143,14 @@ $$[c, a_0, a_1, a_2, \cdots] = [1.079, 1.0, 0.0, 0.1, \cdots]$$"
 begin
 	N = 30
 	initial_guess = (1e-10).*ones(N+2)
-	initial_guess[1:4] = [1.079, 1.0, 0.01, 0.01]
+	initial_guess[1:4] = [0.805819991259268, 1.0, 0.1, 1e-10]
 end
 
 # ╔═╡ f2bd90dc-ef53-48f7-9ba0-005171f141c1
 md"use `NLsolve` to solve our system"
 
 # ╔═╡ 34f0a96e-d7be-48eb-8ab3-fc8c8f899785
-sol = nlsolve(equations!, initial_guess, iterations=100)
+sol = nlsolve(equations!, initial_guess)
 
 # ╔═╡ b312fdb7-1c9d-484b-812a-e12a2e4b102e
 md"#### Plot the wave profile"
